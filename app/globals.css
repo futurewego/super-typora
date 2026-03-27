@@ -1,0 +1,123 @@
+@import "@fontsource/ibm-plex-sans/400.css";
+@import "@fontsource/ibm-plex-sans/500.css";
+@import "@fontsource/ibm-plex-sans/600.css";
+@import "@fontsource/ibm-plex-sans/700.css";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+@import "@fontsource/ibm-plex-mono/600.css";
+@import "tailwindcss";
+
+:root {
+  --background: #f4efe5;
+  --foreground: #171717;
+  --surface: rgba(255, 250, 244, 0.76);
+  --surface-strong: #fffaf4;
+  --muted: #5a534b;
+  --line: rgba(23, 23, 23, 0.12);
+  --accent: #c96d2d;
+  --accent-soft: rgba(201, 109, 45, 0.14);
+  --accent-cool: #2d7c82;
+  --shadow: 0 24px 80px rgba(38, 29, 20, 0.12);
+  --grid: rgba(23, 23, 23, 0.06);
+}
+
+:root[data-theme="light"] {
+  --background: #f4efe5;
+  --foreground: #171717;
+  --surface: rgba(255, 250, 244, 0.76);
+  --surface-strong: #fffaf4;
+  --muted: #5a534b;
+  --line: rgba(23, 23, 23, 0.12);
+  --accent: #c96d2d;
+  --accent-soft: rgba(201, 109, 45, 0.14);
+  --accent-cool: #2d7c82;
+  --shadow: 0 24px 80px rgba(38, 29, 20, 0.12);
+  --grid: rgba(23, 23, 23, 0.06);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: "IBM Plex Sans";
+  --font-mono: "IBM Plex Mono";
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0d1113;
+    --foreground: #edf0ef;
+    --surface: rgba(17, 24, 26, 0.72);
+    --surface-strong: #141c1f;
+    --muted: #9aa8a4;
+    --line: rgba(237, 240, 239, 0.1);
+    --accent: #e9a15f;
+    --accent-soft: rgba(233, 161, 95, 0.14);
+    --accent-cool: #6ec7c1;
+    --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    --grid: rgba(237, 240, 239, 0.06);
+  }
+}
+
+:root[data-theme="dark"] {
+  --background: #0d1113;
+  --foreground: #edf0ef;
+  --surface: rgba(17, 24, 26, 0.72);
+  --surface-strong: #141c1f;
+  --muted: #9aa8a4;
+  --line: rgba(237, 240, 239, 0.1);
+  --accent: #e9a15f;
+  --accent-soft: rgba(233, 161, 95, 0.14);
+  --accent-cool: #6ec7c1;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  --grid: rgba(237, 240, 239, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "IBM Plex Sans", sans-serif;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+    radial-gradient(circle at top left, rgba(201, 109, 45, 0.12), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(45, 124, 130, 0.1), transparent 24%);
+  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%;
+}
+
+a,
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--foreground);
+}
+
+.grain {
+  position: relative;
+}
+
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.07) 0.55px, transparent 0.55px);
+  background-size: 8px 8px;
+  opacity: 0.22;
+}
