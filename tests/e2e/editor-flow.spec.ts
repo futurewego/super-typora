@@ -22,7 +22,7 @@ test("imports, edits, autosaves, and keeps editor actions visible", async ({
 
   await expect(page.getByRole("heading", { name: "Next Steps" })).toBeVisible();
   await expect(page.getByRole("heading", { name: /next steps/i })).toBeVisible();
-  await expect(page.getByText(/saved/i)).toBeVisible({ timeout: 3000 });
+  await expect(page.getByText(/已保存|saved/i)).toBeVisible({ timeout: 3000 });
 
   await page.reload();
 

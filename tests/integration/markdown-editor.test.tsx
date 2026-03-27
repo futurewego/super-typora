@@ -41,6 +41,6 @@ describe("markdown editor", () => {
     await user.click(screen.getByLabelText(/markdown editor/i));
     await user.keyboard("\nNew line");
 
-    expect(screen.getByText(/dirty/i)).toBeInTheDocument();
+    expect(screen.getByText(/未保存/i)).toBeInTheDocument();
   });
 });

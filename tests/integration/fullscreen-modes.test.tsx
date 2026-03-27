@@ -34,5 +34,14 @@ describe("fullscreen modes", () => {
     expect(
       screen.queryByRole("heading", { name: /^预览区$/i }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /导出 markdown/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /退出全屏/i })).toBeInTheDocument();
+
+    await user.keyboard("{Escape}");
+
+    expect(screen.getByRole("heading", { name: /^预览区$/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /导出 markdown/i })).toBeInTheDocument();
   });
 });

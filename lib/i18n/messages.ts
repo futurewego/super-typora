@@ -43,6 +43,12 @@ export const messages = {
       draft: "草稿",
       live: "实时",
     },
+    saveState: {
+      dirty: "未保存",
+      saving: "保存中",
+      saved: "已保存",
+      error: "错误",
+    },
   },
   en: {
     languageSwitch: "中文",
@@ -85,6 +91,12 @@ export const messages = {
       preview: "Preview",
       draft: "Draft",
       live: "Live",
+    },
+    saveState: {
+      dirty: "Dirty",
+      saving: "Saving",
+      saved: "Saved",
+      error: "Error",
     },
   },
 } as const;

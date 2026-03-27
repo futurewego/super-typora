@@ -1,11 +1,6 @@
+import type { AppLanguage } from "@/lib/i18n/messages";
+import { getMessages } from "@/lib/i18n/messages";
 import type { SaveState } from "@/stores/editor-store";
-
-const LABELS: Record<SaveState, string> = {
-  dirty: "Dirty",
-  saving: "Saving",
-  saved: "Saved",
-  error: "Error",
-};
 
 const TONES: Record<SaveState, string> = {
   dirty: "text-[color:var(--accent)] bg-[color:var(--accent-soft)]",
@@ -16,14 +11,17 @@ const TONES: Record<SaveState, string> = {
 
 interface SaveIndicatorProps {
   saveState: SaveState;
+  language: AppLanguage;
 }
 
-export function SaveIndicator({ saveState }: SaveIndicatorProps) {
+export function SaveIndicator({ saveState, language }: SaveIndicatorProps) {
+  const copy = getMessages(language);
+
   return (
     <span
       className={`rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] ${TONES[saveState]}`}
     >
-      {LABELS[saveState]}
+      {copy.saveState[saveState]}
     </span>
   );
 }

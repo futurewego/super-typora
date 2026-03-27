@@ -87,6 +87,20 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
   }, [theme]);
 
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setFullscreenMode("none");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => {
     writeLayoutState(layout);
   }, [layout]);
 
@@ -214,7 +228,9 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
         />
         <div
           data-testid="editor-grid"
-          className="grid flex-1 items-stretch gap-0 px-4 py-4 sm:px-5 sm:py-5"
+          className={`grid flex-1 items-stretch gap-0 px-4 py-4 sm:px-5 sm:py-5 ${
+            fullscreenMode === "none" ? "" : "bg-[color:var(--surface-strong)]"
+          }`}
           style={{ gridTemplateColumns }}
         >
           {fullscreenMode !== "preview" ? (

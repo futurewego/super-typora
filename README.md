@@ -1,6 +1,16 @@
 # Super Markdown Workbench
 
+[![Next.js](https://img.shields.io/badge/Next.js-16.2.1-000000?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vitest](https://img.shields.io/badge/Vitest-4.1.1-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![Release](https://img.shields.io/github/v/release/futurewego/super-typora?display_name=tag)](https://github.com/futurewego/super-typora/releases)
+
 Super Markdown Workbench is a local-first Markdown web app built for fast editing, reliable autosave, and low-friction re-entry into unfinished work.
+
+## Preview
+
+![Super Markdown Workbench home screenshot](docs/assets/workbench-home.png)
 
 ## What V1 includes
 

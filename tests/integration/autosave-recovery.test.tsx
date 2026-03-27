@@ -43,10 +43,10 @@ describe("autosave and recovery", () => {
       target: { value: "# Start\nMore" },
     });
 
-    expect(screen.getByText(/dirty/i)).toBeInTheDocument();
+    expect(screen.getByText(/未保存/i)).toBeInTheDocument();
 
     await waitFor(async () => {
-      expect(screen.getByText(/saved/i)).toBeInTheDocument();
+      expect(screen.getByText(/已保存/i)).toBeInTheDocument();
       expect((await getDocument(document.id))?.markdown).toBe("# Start\nMore");
       expect((await getDraft(document.id))?.markdown).toBe("# Start\nMore");
     }, { timeout: 2000 });

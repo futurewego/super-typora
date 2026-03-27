@@ -19,7 +19,7 @@ describe("editor shell", () => {
     );
 
     expect(screen.getByDisplayValue("API Notes")).toBeInTheDocument();
-    expect(screen.getByText(/saved/i)).toBeInTheDocument();
+    expect(screen.getByText(/已保存/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /预览区/i })).toBeInTheDocument();
     expect(
       screen.queryByRole("heading", { name: /outline/i }),

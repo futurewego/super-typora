@@ -77,6 +77,20 @@ export function EditorToolbar({
             >
               {copy.toolbar.previewFullscreen}
             </button>
+            <button
+              type="button"
+              onClick={onExportHtml}
+              className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
+            >
+              {copy.toolbar.exportHtml}
+            </button>
+            <button
+              type="button"
+              onClick={onExportMarkdown}
+              className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
+            >
+              {copy.toolbar.exportMarkdown}
+            </button>
           </>
         ) : (
           <button
@@ -87,21 +101,7 @@ export function EditorToolbar({
             {copy.toolbar.exitFullscreen}
           </button>
         )}
-        <button
-          type="button"
-          onClick={onExportHtml}
-          className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-        >
-          {copy.toolbar.exportHtml}
-        </button>
-        <button
-          type="button"
-          onClick={onExportMarkdown}
-          className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-        >
-          {copy.toolbar.exportMarkdown}
-        </button>
-        <SaveIndicator saveState={saveState} />
+        <SaveIndicator saveState={saveState} language={language} />
       </div>
     </header>
   );
