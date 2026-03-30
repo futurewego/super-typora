@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 import { EditorShell } from "@/components/editor/editor-shell";
-import { getDocument, updateDocument } from "@/lib/storage/documents";
+import { getCachedDocument, saveCachedDocument } from "@/lib/cloud/cache";
+import { getCloudDocument, updateCloudDocument } from "@/lib/cloud/http";
 import type { StoredDocument } from "@/types/document";
 
 export default function EditorPage() {
@@ -16,19 +17,32 @@ export default function EditorPage() {
 
   useEffect(() => {
     async function loadDocument(docId: string) {
-      const nextDocument = await getDocument(docId);
+      try {
+        const cachedDocument = getCachedDocument(docId);
 
-      if (!nextDocument) {
+        if (cachedDocument) {
+          setDocument(cachedDocument);
+          setStatus("ready");
+        }
+
+        const { document: nextDocument } = await getCloudDocument(docId);
+
+        if (!nextDocument) {
+          setStatus("missing");
+          return;
+        }
+
+        const { document: openedDocument } = await updateCloudDocument(docId, {
+          lastOpenedAt: Date.now(),
+          baseVersion: nextDocument.version,
+        });
+
+        setDocument(openedDocument);
+        saveCachedDocument(openedDocument);
+        setStatus("ready");
+      } catch {
         setStatus("missing");
-        return;
       }
-
-      const openedDocument = await updateDocument(docId, {
-        lastOpenedAt: Date.now(),
-      });
-
-      setDocument(openedDocument);
-      setStatus("ready");
     }
 
     if (params.docId) {
@@ -50,7 +64,7 @@ export default function EditorPage() {
         <div className="space-y-3 rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface)] px-6 py-8 shadow-[var(--shadow)]">
           <h1 className="text-2xl font-semibold tracking-[-0.05em]">Document not found</h1>
           <p className="text-sm leading-7 text-[color:var(--muted)]">
-            The requested local document could not be loaded from browser storage.
+            The requested cloud document could not be loaded from your workspace.
           </p>
         </div>
       </main>

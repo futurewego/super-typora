@@ -27,6 +27,7 @@ export const messages = {
       blank: "空白",
       imported: "导入",
       recovered: "恢复",
+      cloud: "云端",
     },
     toolbar: {
       darkMode: "深色模式",
@@ -76,6 +77,7 @@ export const messages = {
       blank: "Blank",
       imported: "Imported",
       recovered: "Recovered",
+      cloud: "Cloud",
     },
     toolbar: {
       darkMode: "Dark Mode",

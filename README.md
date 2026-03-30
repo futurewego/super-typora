@@ -6,7 +6,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
 [![Release](https://img.shields.io/github/v/release/futurewego/super-typora?display_name=tag)](https://github.com/futurewego/super-typora/releases)
 
-Super Markdown Workbench is a local-first Markdown web app built for fast editing, reliable autosave, and low-friction re-entry into unfinished work.
+Super Markdown Workbench is an online Markdown web app built for fast editing, account-based workspace access, and reliable cloud sync.
 
 ## Preview
 
@@ -15,16 +15,17 @@ Super Markdown Workbench is a local-first Markdown web app built for fast editin
 ## What V1 includes
 
 - lightweight workbench homepage
+- email sign-in for personal cloud workspace access
 - create blank documents
-- import local `.md` files
-- recent documents from browser storage
+- import local `.md` files into cloud documents
+- recent documents from cloud storage
 - recover last autosaved draft from home
 - CodeMirror-based Markdown editor
 - live preview with GFM support
 - bilingual UI toggle (`中文 / English`)
 - one-click fullscreen for `Editor` and `Preview`
 - draggable editor / preview width
-- autosave to IndexedDB
+- autosave to IndexedDB plus cloud sync
 - export to `.md` and `.html`
 - theme persistence
 
@@ -62,14 +63,13 @@ npm run build
 
 - `app/page.tsx` is the workbench entry route
 - `app/editor/[docId]/page.tsx` is the editor route
-- documents and draft snapshots are stored in IndexedDB
+- cloud documents are the source of truth
+- documents and draft snapshots are cached in IndexedDB for recovery
 - lightweight preferences are stored in `localStorage`
 - preview and export derive from the same Markdown source
 
 ## Deferred after V1
 
-- user accounts
-- cloud sync
 - full-text search
 - folders and tags
 - collaboration

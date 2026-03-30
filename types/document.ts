@@ -1,10 +1,12 @@
-export type DocumentSource = "blank" | "imported" | "recovered";
+export type DocumentSource = "blank" | "imported" | "recovered" | "cloud";
 
 export interface StoredDocument {
   id: string;
+  userId?: string;
   title: string;
   markdown: string;
   source: DocumentSource;
+  version?: number;
   createdAt: number;
   updatedAt: number;
   lastOpenedAt: number;

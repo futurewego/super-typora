@@ -7,10 +7,11 @@ import { PreviewPane } from "@/components/editor/preview-pane";
 import { EditorToolbar } from "@/components/editor/editor-toolbar";
 import { downloadHtml } from "@/lib/export/export-html";
 import { downloadMarkdown } from "@/lib/export/export-md";
+import { saveCachedDocument } from "@/lib/cloud/cache";
+import { updateCloudDocument } from "@/lib/cloud/http";
 import type { AppLanguage } from "@/lib/i18n/messages";
 import { getMessages } from "@/lib/i18n/messages";
 import { saveDraft } from "@/lib/storage/drafts";
-import { updateDocument } from "@/lib/storage/documents";
 import { getPreferences, savePreferences } from "@/lib/storage/preferences";
 import { applyTheme } from "@/lib/theme/apply-theme";
 import { debounce } from "@/lib/utils/debounce";
@@ -127,14 +128,18 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
           savedAt,
         });
 
-        const savedDocument = await updateDocument(document.id, {
-          title,
-          markdown,
-          updatedAt: savedAt,
-          lastOpenedAt: savedAt,
-        });
+        const { document: savedDocument } = await updateCloudDocument(
+          document.id,
+          {
+            title,
+            markdown,
+            baseVersion: document.version,
+            lastOpenedAt: savedAt,
+          },
+        );
 
         hydrateFromDocument(savedDocument);
+        saveCachedDocument(savedDocument);
         setSaveState("saved");
       } catch {
         setSaveState("error");

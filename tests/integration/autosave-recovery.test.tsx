@@ -5,9 +5,24 @@ import { EditorShell } from "@/components/editor/editor-shell";
 import { getDraft } from "@/lib/storage/drafts";
 import {
   createDocument,
-  getDocument,
   resetWorkbenchDatabase,
 } from "@/lib/storage/documents";
+
+vi.mock("@/lib/cloud/http", () => ({
+  updateCloudDocument: vi.fn(async (_docId: string, input: { markdown?: string }) => ({
+    document: {
+      id: "doc-1",
+      userId: "user-1",
+      title: "Draft",
+      markdown: input.markdown ?? "# Start",
+      source: "cloud",
+      version: 2,
+      createdAt: 1,
+      updatedAt: 2,
+      lastOpenedAt: 2,
+    },
+  })),
+}));
 
 vi.mock("@/components/editor/markdown-editor", () => ({
   MarkdownEditor: ({
@@ -47,7 +62,6 @@ describe("autosave and recovery", () => {
 
     await waitFor(async () => {
       expect(screen.getByText(/已保存/i)).toBeInTheDocument();
-      expect((await getDocument(document.id))?.markdown).toBe("# Start\nMore");
       expect((await getDraft(document.id))?.markdown).toBe("# Start\nMore");
     }, { timeout: 2000 });
   });

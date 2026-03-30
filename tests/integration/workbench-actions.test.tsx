@@ -25,6 +25,7 @@ describe("workbench actions", () => {
 
     render(
       <WorkbenchShell
+        accountEmail="marvin@example.com"
         recentDocs={[recentDocument]}
         recoverableDraftTitle="Weekly Notes"
         onCreate={onCreate}
@@ -32,6 +33,7 @@ describe("workbench actions", () => {
         onRecover={onRecover}
         onOpenDocument={onOpenDocument}
         onToggleLanguage={() => {}}
+        onSignOut={() => {}}
         language="zh"
       />,
     );

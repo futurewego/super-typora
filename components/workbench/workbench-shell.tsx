@@ -7,6 +7,7 @@ import { RecentDocs } from "@/components/workbench/recent-docs";
 import { RecoveryCard } from "@/components/workbench/recovery-card";
 
 interface WorkbenchShellProps {
+  accountEmail: string | null;
   recentDocs: StoredDocument[];
   recoverableDraftTitle?: string;
   onCreate: () => void;
@@ -14,10 +15,12 @@ interface WorkbenchShellProps {
   onRecover: () => void;
   onOpenDocument: (docId: string) => void;
   onToggleLanguage: () => void;
+  onSignOut: () => void;
   language: AppLanguage;
 }
 
 export function WorkbenchShell({
+  accountEmail,
   recentDocs,
   recoverableDraftTitle,
   onCreate,
@@ -25,6 +28,7 @@ export function WorkbenchShell({
   onRecover,
   onOpenDocument,
   onToggleLanguage,
+  onSignOut,
   language,
 }: WorkbenchShellProps) {
   const copy = getMessages(language);
@@ -40,13 +44,27 @@ export function WorkbenchShell({
                   <span className="h-2 w-2 rounded-full bg-[color:var(--accent)]" />
                   {copy.appBadge}
                 </div>
-                <button
-                  type="button"
-                  onClick={onToggleLanguage}
-                  className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-                >
-                  {copy.languageSwitch}
-                </button>
+                <div className="flex items-center gap-2">
+                  {accountEmail ? (
+                    <span className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs tracking-[0.08em] text-[color:var(--muted)]">
+                      {accountEmail}
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={onToggleLanguage}
+                    className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
+                  >
+                    {copy.languageSwitch}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onSignOut}
+                    className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
+                  >
+                    Sign out
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-4">
