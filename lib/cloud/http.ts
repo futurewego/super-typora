@@ -53,6 +53,7 @@ export async function getCloudDocument(docId: string) {
 }
 
 export async function createCloudDocument(input: {
+  id?: string;
   title: string;
   markdown: string;
   source?: "blank" | "imported" | "recovered" | "cloud";

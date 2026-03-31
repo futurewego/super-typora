@@ -33,21 +33,25 @@ vi.mock("@/lib/cloud/http", () => ({
     account: { id: "user-1", email: "marvin@example.com" },
   })),
   listCloudDocuments: vi.fn(async () => ({ documents: [] })),
-  createCloudDocument: vi.fn(async ({ title, markdown }: { title: string; markdown: string }) => ({
-    document: {
+  updateCloudDocument: vi.fn(),
+  logoutAccount: vi.fn(),
+}));
+
+vi.mock("@/lib/storage/documents", () => ({
+  createDocument: vi
+    .fn()
+    .mockImplementation(async ({ title, markdown }: { title: string; markdown: string }) => ({
       id: `${title}-id`,
-      userId: "user-1",
       title,
       markdown,
       source: "imported",
-      version: 1,
       createdAt: 1,
       updatedAt: 1,
       lastOpenedAt: 1,
-    },
-  })),
-  updateCloudDocument: vi.fn(),
-  logoutAccount: vi.fn(),
+    })),
+  listRecentDocuments: vi.fn(async () => []),
+  updateDocument: vi.fn(),
+  getDocument: vi.fn(),
 }));
 
 vi.mock("@/lib/storage/preferences", () => ({

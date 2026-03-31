@@ -30,5 +30,8 @@ export interface CreateDocumentInput {
 }
 
 export type UpdateDocumentInput = Partial<
-  Pick<StoredDocument, "title" | "markdown" | "source" | "updatedAt" | "lastOpenedAt">
+  Pick<
+    StoredDocument,
+    "title" | "markdown" | "source" | "version" | "updatedAt" | "lastOpenedAt"
+  >
 >;

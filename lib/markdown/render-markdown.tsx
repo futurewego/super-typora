@@ -4,6 +4,7 @@ import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import rehypeSanitize from "rehype-sanitize";
 import GithubSlugger from "github-slugger";
+import { MermaidDiagram } from "@/components/markdown/mermaid-diagram";
 
 function flattenChildren(children: ReactNode): string {
   if (typeof children === "string" || typeof children === "number") {
@@ -19,6 +20,16 @@ function flattenChildren(children: ReactNode): string {
   }
 
   return "";
+}
+
+function isMermaidBlock(language: string | undefined, value: string) {
+  if (language === "mermaid" || language === "graph" || language === "flowchart") {
+    return true;
+  }
+
+  return /^(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|journey|pie|mindmap|timeline|quadrantChart)\b/m.test(
+    value.trim(),
+  );
 }
 
 export function RenderMarkdown({ markdown }: { markdown: string }) {
@@ -39,6 +50,24 @@ export function RenderMarkdown({ markdown }: { markdown: string }) {
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight, rehypeSanitize]}
         components={{
+          pre: ({ children }) => {
+            const value = flattenChildren(children).replace(/\n$/, "");
+            const language =
+              isValidElement<{ className?: string }>(children) &&
+              children.props.className
+                ? /language-(\w+)/.exec(children.props.className)?.[1]
+                : undefined;
+
+            if (isMermaidBlock(language, value)) {
+              return <MermaidDiagram chart={value} />;
+            }
+
+            return (
+              <pre className="overflow-auto rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4 text-xs text-[color:var(--muted)]">
+                {children}
+              </pre>
+            );
+          },
           h1: ({ children }) => {
             const id = slugger.slug(flattenChildren(children));
             return (

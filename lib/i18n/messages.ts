@@ -30,6 +30,7 @@ export const messages = {
       cloud: "云端",
     },
     toolbar: {
+      save: "保存",
       darkMode: "深色模式",
       lightMode: "浅色模式",
       exportHtml: "导出 HTML",
@@ -80,6 +81,7 @@ export const messages = {
       cloud: "Cloud",
     },
     toolbar: {
+      save: "Save",
       darkMode: "Dark Mode",
       lightMode: "Light Mode",
       exportHtml: "Export HTML",

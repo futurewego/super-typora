@@ -153,6 +153,7 @@ export function getCloudDocument(userId: string, docId: string) {
 }
 
 export function createCloudDocument(input: {
+  id?: string;
   userId: string;
   title: string;
   markdown: string;
@@ -160,7 +161,7 @@ export function createCloudDocument(input: {
 }) {
   const now = Date.now();
   const document: CloudDocument = {
-    id: createId("doc"),
+    id: input.id ?? createId("doc"),
     userId: input.userId,
     title: input.title,
     markdown: input.markdown,

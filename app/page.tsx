@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { WorkbenchShell } from "@/components/workbench/workbench-shell";
 import type { AppLanguage } from "@/lib/i18n/messages";
 import {
-  createCloudDocument,
   getCurrentAccount,
   listCloudDocuments,
   logoutAccount,
@@ -18,6 +17,11 @@ import {
   saveCachedWorkspace,
 } from "@/lib/cloud/cache";
 import { getDraft, listDrafts } from "@/lib/storage/drafts";
+import {
+  createDocument,
+  listRecentDocuments,
+  updateDocument,
+} from "@/lib/storage/documents";
 import { getPreferences, savePreferences } from "@/lib/storage/preferences";
 import { collectMarkdownFilesFromDrop } from "@/lib/utils/import-drop";
 import { readMarkdownFile } from "@/lib/utils/file";
@@ -65,14 +69,24 @@ export default function HomePage() {
           }
 
           const { documents } = await listCloudDocuments();
+          const localDocuments = await listRecentDocuments();
 
           if (cancelled) {
             return;
           }
 
-          setRecentDocs(documents);
-          saveCachedWorkspace(documents);
-          documents.forEach((document) => {
+          const mergedDocs: StoredDocument[] = [...documents];
+          for (const localDocument of localDocuments) {
+            if (!mergedDocs.some((item) => item.id === localDocument.id)) {
+              mergedDocs.push(localDocument);
+            }
+          }
+
+          mergedDocs.sort((left, right) => right.lastOpenedAt - left.lastOpenedAt);
+
+          setRecentDocs(mergedDocs);
+          saveCachedWorkspace(mergedDocs);
+          mergedDocs.forEach((document) => {
             saveCachedDocument(document);
           });
 
@@ -113,7 +127,7 @@ export default function HomePage() {
   }, []);
 
   async function handleCreate() {
-    const { document } = await createCloudDocument({
+    const document = await createDocument({
       title: "Untitled",
       markdown: "# Untitled\n",
       source: "blank",
@@ -136,9 +150,10 @@ export default function HomePage() {
     }
 
     const imported = await readMarkdownFile(file);
-    const { document } = await createCloudDocument({
+    const document = await createDocument({
       title: imported.title,
       markdown: imported.markdown,
+      source: "imported",
     });
 
     event.target.value = "";
@@ -154,7 +169,7 @@ export default function HomePage() {
 
     for (const file of files) {
       const imported = await readMarkdownFile(file);
-      const { document } = await createCloudDocument({
+      const document = await createDocument({
         title: imported.title,
         markdown: imported.markdown,
         source: "imported",
@@ -232,19 +247,47 @@ export default function HomePage() {
       return;
     }
 
-    await updateCloudDocument(recoverableDraft.docId, {
-      markdown: draft.markdown,
-      source: "recovered",
-      lastOpenedAt: Date.now(),
-    });
+    try {
+      const localDocument = await updateDocument(recoverableDraft.docId, {
+        markdown: draft.markdown,
+        source: "recovered",
+        lastOpenedAt: Date.now(),
+      });
+
+      if (localDocument.version) {
+        await updateCloudDocument(recoverableDraft.docId, {
+          markdown: draft.markdown,
+          source: "recovered",
+          lastOpenedAt: Date.now(),
+        });
+      }
+    } catch {
+      await updateCloudDocument(recoverableDraft.docId, {
+        markdown: draft.markdown,
+        source: "recovered",
+        lastOpenedAt: Date.now(),
+      });
+    }
 
     router.push(`/editor/${recoverableDraft.docId}`);
   }
 
   async function handleOpenDocument(docId: string) {
-    await updateCloudDocument(docId, {
-      lastOpenedAt: Date.now(),
-    });
+    try {
+      const localDocument = await updateDocument(docId, {
+        lastOpenedAt: Date.now(),
+      });
+
+      if (localDocument.version) {
+        await updateCloudDocument(docId, {
+          lastOpenedAt: Date.now(),
+        });
+      }
+    } catch {
+      await updateCloudDocument(docId, {
+        lastOpenedAt: Date.now(),
+      });
+    }
 
     router.push(`/editor/${docId}`);
   }

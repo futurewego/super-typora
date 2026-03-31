@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { EditorShell } from "@/components/editor/editor-shell";
 import { getCachedDocument, saveCachedDocument } from "@/lib/cloud/cache";
 import { getCloudDocument, updateCloudDocument } from "@/lib/cloud/http";
+import { createDocument, getDocument, updateDocument } from "@/lib/storage/documents";
 import type { StoredDocument } from "@/types/document";
 
 export default function EditorPage() {
@@ -37,10 +38,35 @@ export default function EditorPage() {
           baseVersion: nextDocument.version,
         });
 
+        await createDocument({
+          id: openedDocument.id,
+          title: openedDocument.title,
+          markdown: openedDocument.markdown,
+          source: openedDocument.source,
+          version: openedDocument.version,
+        }).catch(async () => {
+          await updateDocument(openedDocument.id, {
+            title: openedDocument.title,
+            markdown: openedDocument.markdown,
+            source: openedDocument.source,
+            version: openedDocument.version,
+            updatedAt: openedDocument.updatedAt,
+            lastOpenedAt: openedDocument.lastOpenedAt,
+          });
+        });
+
         setDocument(openedDocument);
         saveCachedDocument(openedDocument);
         setStatus("ready");
       } catch {
+        const localDocument = await getDocument(docId);
+
+        if (localDocument) {
+          setDocument(localDocument);
+          setStatus("ready");
+          return;
+        }
+
         setStatus("missing");
       }
     }

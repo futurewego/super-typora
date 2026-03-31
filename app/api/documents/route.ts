@@ -43,6 +43,7 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json().catch(() => ({}))) as {
+    id?: string;
     title?: string;
     markdown?: string;
     source?: "blank" | "imported" | "recovered" | "cloud";
@@ -53,6 +54,7 @@ export async function POST(request: Request) {
   }
 
   const document = createCloudDocument({
+    id: body.id,
     userId: account.id,
     title: body.title,
     markdown: body.markdown,

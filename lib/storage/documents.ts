@@ -12,14 +12,15 @@ function createDocumentId() {
 }
 
 export async function createDocument(
-  input: CreateDocumentInput,
+  input: CreateDocumentInput & { id?: string; version?: number },
 ): Promise<StoredDocument> {
   const now = Date.now();
   const document: StoredDocument = {
-    id: createDocumentId(),
+    id: input.id ?? createDocumentId(),
     title: input.title,
     markdown: input.markdown,
     source: input.source,
+    version: input.version,
     createdAt: now,
     updatedAt: now,
     lastOpenedAt: now,

@@ -8,10 +8,11 @@ import { EditorToolbar } from "@/components/editor/editor-toolbar";
 import { downloadHtml } from "@/lib/export/export-html";
 import { downloadMarkdown } from "@/lib/export/export-md";
 import { saveCachedDocument } from "@/lib/cloud/cache";
-import { updateCloudDocument } from "@/lib/cloud/http";
+import { createCloudDocument, updateCloudDocument } from "@/lib/cloud/http";
 import type { AppLanguage } from "@/lib/i18n/messages";
 import { getMessages } from "@/lib/i18n/messages";
 import { saveDraft } from "@/lib/storage/drafts";
+import { updateDocument } from "@/lib/storage/documents";
 import { getPreferences, savePreferences } from "@/lib/storage/preferences";
 import { applyTheme } from "@/lib/theme/apply-theme";
 import { debounce } from "@/lib/utils/debounce";
@@ -128,15 +129,12 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
           savedAt,
         });
 
-        const { document: savedDocument } = await updateCloudDocument(
-          document.id,
-          {
-            title,
-            markdown,
-            baseVersion: document.version,
-            lastOpenedAt: savedAt,
-          },
-        );
+        const savedDocument = await updateDocument(document.id, {
+          title,
+          markdown,
+          updatedAt: savedAt,
+          lastOpenedAt: savedAt,
+        });
 
         hydrateFromDocument(savedDocument);
         saveCachedDocument(savedDocument);
@@ -152,6 +150,55 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
       saveLater.cancel();
     };
   }, [document, hydrateFromDocument, markdown, setSaveState, title]);
+
+  async function handleSave() {
+    if (!document) {
+      return;
+    }
+
+    try {
+      setSaveState("saving");
+      const savedAt = Date.now();
+
+      await saveDraft({
+        docId: document.id,
+        markdown,
+        savedAt,
+      });
+
+      const localSaved = await updateDocument(document.id, {
+        title,
+        markdown,
+        updatedAt: savedAt,
+        lastOpenedAt: savedAt,
+      });
+
+      const { document: cloudSaved } = document.version
+        ? await updateCloudDocument(document.id, {
+            title,
+            markdown,
+            baseVersion: document.version,
+            lastOpenedAt: savedAt,
+          })
+        : await createCloudDocument({
+            id: document.id,
+            title,
+            markdown,
+            source: document.source,
+          });
+
+      const nextDocument = {
+        ...localSaved,
+        ...cloudSaved,
+      };
+
+      hydrateFromDocument(nextDocument);
+      saveCachedDocument(nextDocument);
+      setSaveState("saved");
+    } catch {
+      setSaveState("error");
+    }
+  }
 
   function beginResize(event: React.MouseEvent<HTMLDivElement>) {
     if (fullscreenMode !== "none") {
@@ -205,6 +252,9 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
           }}
           onExportHtml={() => {
             void downloadHtml(title, markdown);
+          }}
+          onSave={() => {
+            void handleSave();
           }}
           onToggleTheme={() => {
             const nextTheme = theme === "light" ? "dark" : "light";

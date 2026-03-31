@@ -7,6 +7,7 @@ interface EditorToolbarProps {
   title: string;
   saveState: SaveState;
   onTitleChange: (title: string) => void;
+  onSave: () => void;
   onExportMarkdown: () => void;
   onExportHtml: () => void;
   onToggleTheme: () => void;
@@ -23,6 +24,7 @@ export function EditorToolbar({
   title,
   saveState,
   onTitleChange,
+  onSave,
   onExportMarkdown,
   onExportHtml,
   onToggleTheme,
@@ -53,6 +55,13 @@ export function EditorToolbar({
           className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
         >
           {copy.languageSwitch}
+        </button>
+        <button
+          type="button"
+          onClick={onSave}
+          className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
+        >
+          {copy.toolbar.save}
         </button>
         <button
           type="button"
