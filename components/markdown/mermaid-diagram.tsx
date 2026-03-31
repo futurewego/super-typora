@@ -6,15 +6,41 @@ interface MermaidDiagramProps {
   chart: string;
 }
 
+function normalizeMermaidChart(chart: string) {
+  const lines = chart.replace(/\r\n/g, "\n").split("\n");
+  const normalized: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.replace(/\t/g, "  ");
+
+    if (trimmed.trim().length === 0) {
+      normalized.push("");
+      continue;
+    }
+
+    const pieces = trimmed.split(
+      /(?<=[\]\)])\s{2,}(?=[A-Za-z_][A-Za-z0-9_]*\s*(?:-->|-\.|\.->|==>|---|-->))/g,
+    );
+    normalized.push(...pieces);
+  }
+
+  while (normalized[0] === "") normalized.shift();
+  while (normalized[normalized.length - 1] === "") normalized.pop();
+
+  return normalized.map((line) => line.replace(/\s+$/, "")).join("\n");
+}
+
 export function MermaidDiagram({ chart }: MermaidDiagramProps) {
   const [svg, setSvg] = useState<string | null>(null);
   const [fallback, setFallback] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
 
     void (async () => {
       try {
         const mermaid = await import("mermaid");
+        const normalizedChart = normalizeMermaidChart(chart);
 
         mermaid.default.initialize({
           startOnLoad: false,
@@ -22,9 +48,9 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
           theme: "neutral",
         });
 
-        await mermaid.default.parse(chart);
+        await mermaid.default.parse(normalizedChart);
         const id = `mermaid-${crypto.randomUUID()}`;
-        const rendered = await mermaid.default.render(id, chart);
+        const rendered = await mermaid.default.render(id, normalizedChart);
         const nextSvg = rendered.svg;
 
         if (/<text[^>]*>\s*Syntax error in text/i.test(nextSvg)) {
@@ -68,5 +94,10 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     );
   }
 
-  return <div className="overflow-auto rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4" dangerouslySetInnerHTML={{ __html: svg }} />;
+  return (
+    <div
+      className="overflow-auto rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)] p-4"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
 }

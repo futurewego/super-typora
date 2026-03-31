@@ -20,4 +20,16 @@ describe("MermaidDiagram", () => {
     expect(await screen.findByText(/graph TD/)).toBeInTheDocument();
     expect(screen.queryByText(/Syntax error in text/i)).not.toBeInTheDocument();
   });
+
+  it("normalizes accidentally concatenated lines before rendering", async () => {
+    render(
+      <MermaidDiagram
+        chart={
+          'graph TD\n  C --> D[执行节点逻辑 (并行)]        D --> E[向通道写入更新]'
+        }
+      />,
+    );
+
+    expect(await screen.findByText(/执行节点逻辑/)).toBeInTheDocument();
+  });
 });
