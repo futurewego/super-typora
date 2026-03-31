@@ -50,6 +50,28 @@ export function RenderMarkdown({ markdown }: { markdown: string }) {
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight, rehypeSanitize]}
         components={{
+          table: ({ children }) => (
+            <div className="my-6 overflow-auto rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)]">
+              <table className="w-full border-collapse">{children}</table>
+            </div>
+          ),
+          thead: ({ children }) => (
+            <thead className="bg-[color:var(--surface-strong)]">{children}</thead>
+          ),
+          tbody: ({ children }) => <tbody>{children}</tbody>,
+          tr: ({ children }) => (
+            <tr className="border-b border-[color:var(--line)] last:border-b-0">{children}</tr>
+          ),
+          th: ({ children }) => (
+            <th className="border-r border-[color:var(--line)] px-4 py-3 text-left text-sm font-semibold text-[color:var(--foreground)] last:border-r-0">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="border-r border-[color:var(--line)] px-4 py-3 text-sm leading-7 text-[color:var(--foreground)] last:border-r-0">
+              {children}
+            </td>
+          ),
           pre: ({ children }) => {
             const value = flattenChildren(children).replace(/\n$/, "");
             const language =

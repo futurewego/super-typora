@@ -25,4 +25,17 @@ describe("RenderMarkdown", () => {
       "graph TD",
     );
   });
+
+  it("renders table cells with visible border classes", () => {
+    render(
+      <RenderMarkdown
+        markdown={"| 功能 | 描述 |\n| --- | --- |\n| 文档更新检测 | 基于哈希比较 |"}
+      />,
+    );
+
+    const table = screen.getByRole("table");
+    expect(table).toBeInTheDocument();
+    expect(screen.getAllByRole("cell")[0].className).toContain("border-r");
+    expect(screen.getAllByRole("columnheader")[0].className).toContain("border-r");
+  });
 });

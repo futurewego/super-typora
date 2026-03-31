@@ -12,9 +12,6 @@ interface EditorToolbarProps {
   onExportHtml: () => void;
   onToggleTheme: () => void;
   onToggleLanguage: () => void;
-  onEditorFullscreen: () => void;
-  onPreviewFullscreen: () => void;
-  onExitFullscreen: () => void;
   theme: "light" | "dark";
   language: AppLanguage;
   fullscreenMode: "none" | "editor" | "preview";
@@ -29,9 +26,6 @@ export function EditorToolbar({
   onExportHtml,
   onToggleTheme,
   onToggleLanguage,
-  onEditorFullscreen,
-  onPreviewFullscreen,
-  onExitFullscreen,
   theme,
   language,
   fullscreenMode,
@@ -74,20 +68,6 @@ export function EditorToolbar({
           <>
             <button
               type="button"
-              onClick={onEditorFullscreen}
-              className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-            >
-              {copy.toolbar.editorFullscreen}
-            </button>
-            <button
-              type="button"
-              onClick={onPreviewFullscreen}
-              className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-            >
-              {copy.toolbar.previewFullscreen}
-            </button>
-            <button
-              type="button"
               onClick={onExportHtml}
               className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
             >
@@ -101,15 +81,7 @@ export function EditorToolbar({
               {copy.toolbar.exportMarkdown}
             </button>
           </>
-        ) : (
-          <button
-            type="button"
-            onClick={onExitFullscreen}
-            className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-          >
-            {copy.toolbar.exitFullscreen}
-          </button>
-        )}
+        ) : null}
         <SaveIndicator saveState={saveState} language={language} />
       </div>
     </header>

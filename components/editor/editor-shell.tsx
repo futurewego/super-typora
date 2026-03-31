@@ -31,6 +31,36 @@ const LAYOUT_STORAGE_KEY = "super-markdown-workbench:layout";
 const DEFAULT_EDITOR_MIN = 320;
 const DEFAULT_PREVIEW_MIN = 320;
 
+function FullscreenToggle({
+  label,
+  onClick,
+  expanded,
+}: {
+  label: string;
+  onClick: () => void;
+  expanded: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[color:var(--line)] text-[color:var(--muted)] transition-colors hover:border-[color:var(--accent)] hover:text-[color:var(--foreground)]"
+    >
+      {expanded ? (
+        <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M6 6H2V2M10 6h4V2M6 10H2v4M10 10h4v4" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M6 2H2v4M10 2h4v4M2 10v4h4M14 10v4h-4" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
 function readLayoutState(): EditorLayoutState {
   if (typeof window === "undefined") {
     return {};
@@ -267,15 +297,6 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
             setLanguage(nextLanguage);
             savePreferences({ language: nextLanguage });
           }}
-          onEditorFullscreen={() => {
-            setFullscreenMode("editor");
-          }}
-          onPreviewFullscreen={() => {
-            setFullscreenMode("preview");
-          }}
-          onExitFullscreen={() => {
-            setFullscreenMode("none");
-          }}
           onTitleChange={(nextTitle) => {
             setTitle(nextTitle);
             setSaveState("dirty");
@@ -294,7 +315,22 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
                 <h2 className="text-sm font-medium uppercase tracking-[0.22em] text-[color:var(--muted)]">
                   {copy.panels.editor}
                 </h2>
-                <span className="font-mono text-xs text-[color:var(--muted)]">{copy.panels.draft}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-[color:var(--muted)]">{copy.panels.draft}</span>
+                  <FullscreenToggle
+                    label={
+                      fullscreenMode === "editor"
+                        ? copy.toolbar.exitFullscreen
+                        : copy.toolbar.editorFullscreen
+                    }
+                    expanded={fullscreenMode === "editor"}
+                    onClick={() => {
+                      setFullscreenMode((current) =>
+                        current === "editor" ? "none" : "editor",
+                      );
+                    }}
+                  />
+                </div>
               </div>
               <div className="pt-4">
                 <MarkdownEditor
@@ -320,7 +356,28 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
             </div>
           ) : null}
 
-          {fullscreenMode !== "editor" ? <PreviewPane markdown={markdown} title={copy.panels.preview} meta={copy.panels.live} /> : null}
+          {fullscreenMode !== "editor" ? (
+            <PreviewPane
+              markdown={markdown}
+              title={copy.panels.preview}
+              meta={copy.panels.live}
+              action={
+                <FullscreenToggle
+                  label={
+                    fullscreenMode === "preview"
+                      ? copy.toolbar.exitFullscreen
+                      : copy.toolbar.previewFullscreen
+                  }
+                  expanded={fullscreenMode === "preview"}
+                  onClick={() => {
+                    setFullscreenMode((current) =>
+                      current === "preview" ? "none" : "preview",
+                    );
+                  }}
+                />
+              }
+            />
+          ) : null}
         </div>
       </section>
     </main>

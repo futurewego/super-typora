@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Super Markdown Workbench",
-  description: "A local-first online markdown workbench for fast editing and safe recovery.",
+  description: "一个支持在线同步与安全恢复的 Markdown 工作台。",
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased" data-scroll-behavior="smooth">
+    <html lang="zh" className="h-full antialiased" data-scroll-behavior="smooth">
       <body className="min-h-full flex flex-col">
         <ThemeSync />
         {children}
