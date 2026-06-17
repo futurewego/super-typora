@@ -13,7 +13,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     void (async () => {
-      const { account } = await getCurrentAccount();
+      // 离线 / 桌面端无后端时静默失败，停留在登录页
+      const { account } = await getCurrentAccount().catch(() => ({
+        account: null,
+      }));
       if (account) {
         router.replace("/");
       }

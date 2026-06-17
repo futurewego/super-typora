@@ -1,27 +1,47 @@
 import type { UserAccount, CloudSession } from "@/types/account";
 import type { CloudDocument, CloudDocumentVersion, SyncEvent } from "@/types/sync";
 import { getOrCreateDeviceId } from "@/lib/utils/device-id";
+import { isElectron } from "@/lib/utils/is-electron";
 
 interface ApiErrorPayload {
   error: string;
   conflict?: unknown;
 }
 
-async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit) {
-  const response = await fetch(input, {
-    ...init,
-    headers: {
-      "content-type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
+// 云端请求超时（毫秒）：避免离线时 fetch 长时间挂起，快速回退本地。
+const REQUEST_TIMEOUT_MS = 6000;
 
-  if (!response.ok) {
-    const payload = (await response.json().catch(() => ({}))) as ApiErrorPayload;
-    throw new Error(payload.error || `Request failed: ${response.status}`);
+async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit) {
+  // 桌面端（Electron 静态产物，无后端）：直接快速失败，调用方回退本地。
+  if (isElectron()) {
+    throw new Error("cloud-unavailable-in-desktop");
   }
 
-  return (await response.json()) as T;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(input, {
+      ...init,
+      credentials: "include",
+      signal: init?.signal ?? controller.signal,
+      headers: {
+        "content-type": "application/json",
+        ...(init?.headers ?? {}),
+      },
+    });
+
+    if (!response.ok) {
+      const payload = (await response
+        .json()
+        .catch(() => ({}))) as ApiErrorPayload;
+      throw new Error(payload.error || `Request failed: ${response.status}`);
+    }
+
+    return (await response.json()) as T;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function loginAccount(email: string) {
@@ -56,7 +76,7 @@ export async function createCloudDocument(input: {
   id?: string;
   title: string;
   markdown: string;
-  source?: "blank" | "imported" | "recovered" | "cloud";
+  source?: "blank" | "imported" | "recovered" | "cloud" | "local";
 }) {
   return requestJson<{ document: CloudDocument }>("/api/documents", {
     method: "POST",
@@ -69,7 +89,7 @@ export async function updateCloudDocument(
   input: {
     title?: string;
     markdown?: string;
-    source?: "blank" | "imported" | "recovered" | "cloud";
+    source?: "blank" | "imported" | "recovered" | "cloud" | "local";
     baseVersion?: number;
     lastOpenedAt?: number;
   },

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeSync } from "@/components/theme-sync";
+import { ElectronFileHandler } from "@/components/electron-file-handler";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="zh" className="h-full antialiased" data-scroll-behavior="smooth">
       <body className="min-h-full flex flex-col">
         <ThemeSync />
+        <ElectronFileHandler />
         {children}
       </body>
     </html>

@@ -8,6 +8,7 @@ export const messages = {
     heroDescription:
       "一个安静、可靠的 Markdown 工作台，支持导入、恢复、预览与导出，尽量不打断你的写作流。",
     createDocument: "新建文档",
+    openFile: "打开文件",
     importMarkdown: "导入 Markdown",
     continueDraft: "继续草稿",
     workbenchNote: "工作台说明",
@@ -28,6 +29,7 @@ export const messages = {
       imported: "导入",
       recovered: "恢复",
       cloud: "云端",
+      local: "本地",
     },
     toolbar: {
       save: "保存",
@@ -59,6 +61,7 @@ export const messages = {
     heroDescription:
       "A calm Markdown workbench for importing, recovering, previewing, and exporting without breaking your flow.",
     createDocument: "New Document",
+    openFile: "Open File",
     importMarkdown: "Import Markdown",
     continueDraft: "Continue Draft",
     workbenchNote: "Workbench note",
@@ -79,6 +82,7 @@ export const messages = {
       imported: "Imported",
       recovered: "Recovered",
       cloud: "Cloud",
+      local: "Local",
     },
     toolbar: {
       save: "Save",

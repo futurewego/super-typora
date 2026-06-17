@@ -1,39 +1,62 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { EditorShell } from "@/components/editor/editor-shell";
 import { getCachedDocument, saveCachedDocument } from "@/lib/cloud/cache";
 import { getCloudDocument, updateCloudDocument } from "@/lib/cloud/http";
 import { createDocument, getDocument, updateDocument } from "@/lib/storage/documents";
+import { isElectron } from "@/lib/utils/is-electron";
 import type { StoredDocument } from "@/types/document";
 
-export default function EditorPage() {
-  const params = useParams<{ docId: string }>();
+function EditorContent() {
+  const searchParams = useSearchParams();
+  const docId = searchParams.get("docId");
   const [document, setDocument] = useState<StoredDocument | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "missing">(
     "loading",
   );
 
   useEffect(() => {
-    async function loadDocument(docId: string) {
+    async function loadDocument(id: string) {
+      // 本地优先：先取本地 IndexedDB 文档
+      const localDocument = await getDocument(id);
+
+      // 桌面端或本地来源文档：直接走本地，完全不依赖云端
+      // （避免离线/无后端时云端 fetch 卡死或误判 "missing"）
+      if (isElectron() || localDocument?.source === "local") {
+        if (localDocument) {
+          setDocument(localDocument);
+          setStatus("ready");
+        } else {
+          setStatus("missing");
+        }
+        return;
+      }
+
+      // Web 云端路径：云端优先，失败或缺失时回退本地
       try {
-        const cachedDocument = getCachedDocument(docId);
+        const cachedDocument = getCachedDocument(id);
 
         if (cachedDocument) {
           setDocument(cachedDocument);
           setStatus("ready");
         }
 
-        const { document: nextDocument } = await getCloudDocument(docId);
+        const { document: nextDocument } = await getCloudDocument(id);
 
         if (!nextDocument) {
+          if (localDocument) {
+            setDocument(localDocument);
+            setStatus("ready");
+            return;
+          }
           setStatus("missing");
           return;
         }
 
-        const { document: openedDocument } = await updateCloudDocument(docId, {
+        const { document: openedDocument } = await updateCloudDocument(id, {
           lastOpenedAt: Date.now(),
           baseVersion: nextDocument.version,
         });
@@ -59,8 +82,6 @@ export default function EditorPage() {
         saveCachedDocument(openedDocument);
         setStatus("ready");
       } catch {
-        const localDocument = await getDocument(docId);
-
         if (localDocument) {
           setDocument(localDocument);
           setStatus("ready");
@@ -71,10 +92,12 @@ export default function EditorPage() {
       }
     }
 
-    if (params.docId) {
-      void loadDocument(params.docId);
+    if (docId) {
+      void loadDocument(docId);
+    } else {
+      setStatus("missing");
     }
-  }, [params.docId]);
+  }, [docId]);
 
   if (status === "loading") {
     return (
@@ -90,7 +113,7 @@ export default function EditorPage() {
         <div className="space-y-3 rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface)] px-6 py-8 shadow-[var(--shadow)]">
           <h1 className="text-2xl font-semibold tracking-[-0.05em]">Document not found</h1>
           <p className="text-sm leading-7 text-[color:var(--muted)]">
-            The requested cloud document could not be loaded from your workspace.
+            The requested document could not be loaded from your workspace.
           </p>
         </div>
       </main>
@@ -98,4 +121,16 @@ export default function EditorPage() {
   }
 
   return <EditorShell initialDocument={document} />;
+}
+
+export default function EditorPage() {
+  return (
+    <Suspense fallback={
+      <main className="flex flex-1 items-center justify-center px-6 py-12 text-[color:var(--muted)]">
+        Loading editor...
+      </main>
+    }>
+      <EditorContent />
+    </Suspense>
+  );
 }

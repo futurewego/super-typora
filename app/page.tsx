@@ -25,6 +25,7 @@ import {
 import { getPreferences, savePreferences } from "@/lib/storage/preferences";
 import { collectMarkdownFilesFromDrop } from "@/lib/utils/import-drop";
 import { readMarkdownFile } from "@/lib/utils/file";
+import { getElectronAPI, isElectron } from "@/lib/utils/is-electron";
 import type { StoredDocument } from "@/types/document";
 
 interface RecoverableDraftState {
@@ -38,7 +39,7 @@ export default function HomePage() {
   const dragDepthRef = useRef(0);
   const [language, setLanguage] = useState<AppLanguage>(() => getPreferences().language);
   const [isLoadingAccount, setIsLoadingAccount] = useState(true);
-  const [accountEmail, setAccountEmail] = useState<string | null>(null);
+  const [accountEmail, setAccountEmail] = useState<string | null>("local-user");
   const [recentDocs, setRecentDocs] = useState<StoredDocument[]>([]);
   const [recoverableDraft, setRecoverableDraft] =
     useState<RecoverableDraftState>();
@@ -47,28 +48,58 @@ export default function HomePage() {
   useEffect(() => {
     let cancelled = false;
 
-    queueMicrotask(() => {
-      void (async () => {
+    async function initialize() {
+      try {
+        const cachedWorkspace = getCachedWorkspace();
+        if (cachedWorkspace?.recentDocs.length) {
+          setRecentDocs(cachedWorkspace.recentDocs);
+        }
+
+        // 桌面端：纯本地优先，完全跳过云端账号/文档查询
+        if (isElectron()) {
+          try {
+            const localDocuments = await listRecentDocuments();
+            if (cancelled) {
+              return;
+            }
+            setRecentDocs(localDocuments);
+            setAccountEmail("local-user");
+
+            const drafts = await listDrafts();
+            const latestDraft = drafts.sort(
+              (left, right) => right.savedAt - left.savedAt,
+            )[0];
+            const draftDoc = latestDraft
+              ? localDocuments.find((item) => item.id === latestDraft.docId)
+              : undefined;
+            if (latestDraft && draftDoc) {
+              setRecoverableDraft({
+                docId: latestDraft.docId,
+                title: draftDoc.title,
+              });
+            }
+          } catch (electronError) {
+            console.error("Local initialization failed:", electronError);
+          } finally {
+            if (!cancelled) {
+              setIsLoadingAccount(false);
+            }
+          }
+          return;
+        }
+
+        const { account } = await getCurrentAccount();
+
+        if (cancelled) {
+          return;
+        }
+
+        const currentEmail = account?.email ?? "local-user";
+        setAccountEmail(currentEmail);
+
+        // Secondary data loading, if these fail, we still have the account
         try {
-          const cachedWorkspace = getCachedWorkspace();
-          if (cachedWorkspace?.recentDocs.length) {
-            setRecentDocs(cachedWorkspace.recentDocs);
-          }
-
-          const { account } = await getCurrentAccount();
-
-          if (cancelled) {
-            return;
-          }
-
-          setAccountEmail(account?.email ?? null);
-
-          if (!account) {
-            setIsLoadingAccount(false);
-            return;
-          }
-
-          const { documents } = await listCloudDocuments();
+          const { documents } = account ? await listCloudDocuments() : { documents: [] };
           const localDocuments = await listRecentDocuments();
 
           if (cancelled) {
@@ -112,14 +143,22 @@ export default function HomePage() {
             title: document.title,
           });
           setIsLoadingAccount(false);
-        } catch {
+        } catch (secondaryError) {
+          console.error("Secondary initialization failed:", secondaryError);
           if (!cancelled) {
-            setAccountEmail(null);
             setIsLoadingAccount(false);
           }
         }
-      })();
-    });
+      } catch (primaryError) {
+        console.error("Primary initialization failed:", primaryError);
+        if (!cancelled) {
+          setAccountEmail("local-user");
+          setIsLoadingAccount(false);
+        }
+      }
+    }
+
+    void initialize();
 
     return () => {
       cancelled = true;
@@ -135,11 +174,22 @@ export default function HomePage() {
 
     saveCachedDocument(document);
 
-    router.push(`/editor/${document.id}`);
+    router.push(`/editor?docId=${document.id}`);
   }
 
   function handleImportRequest() {
     fileInputRef.current?.click();
+  }
+
+  function handleOpenFile() {
+    // 桌面端：弹原生文件对话框，选中后主进程经 open-file 流程打开（带 filePath，可存回磁盘）
+    const electronAPI = getElectronAPI();
+    if (electronAPI) {
+      void electronAPI.openFile();
+      return;
+    }
+    // Web 端：退化为导入
+    handleImportRequest();
   }
 
   async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
@@ -157,7 +207,7 @@ export default function HomePage() {
     });
 
     event.target.value = "";
-    router.push(`/editor/${document.id}`);
+    router.push(`/editor?docId=${document.id}`);
   }
 
   async function handleImportFiles(files: File[]) {
@@ -181,7 +231,7 @@ export default function HomePage() {
     }
 
     if (firstDocumentId) {
-      router.push(`/editor/${firstDocumentId}`);
+      router.push(`/editor?docId=${firstDocumentId}`);
     }
   }
 
@@ -269,7 +319,7 @@ export default function HomePage() {
       });
     }
 
-    router.push(`/editor/${recoverableDraft.docId}`);
+    router.push(`/editor?docId=${recoverableDraft.docId}`);
   }
 
   async function handleOpenDocument(docId: string) {
@@ -289,43 +339,13 @@ export default function HomePage() {
       });
     }
 
-    router.push(`/editor/${docId}`);
+    router.push(`/editor?docId=${docId}`);
   }
 
   if (isLoadingAccount && recentDocs.length === 0) {
     return (
       <main className="flex flex-1 items-center justify-center px-6 py-12 text-[color:var(--muted)]">
         Loading workspace...
-      </main>
-    );
-  }
-
-  if (!isLoadingAccount && !accountEmail) {
-    return (
-      <main className="grain flex flex-1 items-center justify-center px-6 py-12">
-        <section className="w-full max-w-2xl rounded-[2rem] border border-[color:var(--line)] bg-[color:var(--surface)] p-8 shadow-[var(--shadow)] backdrop-blur-xl">
-          <div className="space-y-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-[color:var(--muted)]">
-              Cloud workspace
-            </p>
-            <h1 className="text-4xl font-semibold tracking-[-0.06em] text-[color:var(--foreground)]">
-              Sign in to sync your Markdown workspace
-            </h1>
-            <p className="max-w-xl text-base leading-8 text-[color:var(--muted)]">
-              Your cloud workspace is ready once you log in. Documents, versions, and sync
-              state will stay consistent across devices.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                router.push("/login");
-              }}
-              className="rounded-full bg-[color:var(--foreground)] px-5 py-3 text-sm font-medium text-[color:var(--surface)]"
-            >
-              Go to login
-            </button>
-          </div>
-        </section>
       </main>
     );
   }
@@ -358,6 +378,7 @@ export default function HomePage() {
           onCreate={() => {
             void handleCreate();
           }}
+          onOpen={handleOpenFile}
           onImport={handleImportRequest}
           onRecover={() => {
             void handleRecover();

@@ -2,6 +2,7 @@
   "name": "super-markdown-workbench",
   "version": "0.1.0",
   "private": true,
+  "main": "main/electron-main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +10,53 @@
     "lint": "eslint .",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "electron:dev": "concurrently \"npm run dev -- -p 3001\" \"wait-on http://localhost:3001 && electron .\"",
+    "electron:export": "node scripts/build-electron.mjs",
+    "electron:build": "node scripts/build-electron.mjs && electron-builder"
+  },
+  "build": {
+    "appId": "com.supertypora.app",
+    "productName": "SuperTypora",
+    "files": [
+      "main/**/*",
+      "out/**/*",
+      "package.json",
+      "!node_modules/**"
+    ],
+    "afterPack": "./scripts/after-pack.cjs",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": ["dmg", "zip"],
+      "identity": null,
+      "icon": "build-resources/icon.icns",
+      "extendInfo": {
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Markdown",
+            "CFBundleTypeExtensions": ["md", "markdown"],
+            "CFBundleTypeRole": "Editor",
+            "LSHandlerRank": "Owner"
+          }
+        ]
+      }
+    },
+    "fileAssociations": [
+      {
+        "ext": "md",
+        "name": "Markdown",
+        "role": "Editor"
+      },
+      {
+        "ext": "markdown",
+        "name": "Markdown",
+        "role": "Editor"
+      }
+    ],
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "build-resources"
+    }
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",
@@ -22,7 +69,7 @@
     "github-slugger": "^2.0.0",
     "idb": "^8.0.3",
     "mermaid": "^11.13.0",
-    "next": "16.2.1",
+    "next": "15.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
@@ -45,12 +92,16 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.1",
+    "concurrently": "^9.2.1",
+    "electron": "^41.2.0",
+    "electron-builder": "^26.8.1",
     "eslint": "^9",
-    "eslint-config-next": "16.2.1",
+    "eslint-config-next": "15.5.4",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^29.0.1",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.1"
+    "vitest": "^4.1.1",
+    "wait-on": "^9.0.5"
   }
 }

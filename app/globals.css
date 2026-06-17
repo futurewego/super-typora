@@ -121,3 +121,19 @@ button {
   background-size: 8px 8px;
   opacity: 0.22;
 }
+
+/* ---- Electron 桌面端：窗口拖拽区 ---- */
+.app-drag {
+  -webkit-app-region: drag;
+}
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}
+/* hiddenInset 标题栏：交通灯按钮在左上角，给拖拽条留出空间 */
+.titlebar {
+  height: 38px;
+  -webkit-app-region: drag;
+}
+.titlebar :where(button, a, input, select) {
+  -webkit-app-region: no-drag;
+}

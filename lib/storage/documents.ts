@@ -21,6 +21,7 @@ export async function createDocument(
     markdown: input.markdown,
     source: input.source,
     version: input.version,
+    filePath: input.filePath,
     createdAt: now,
     updatedAt: now,
     lastOpenedAt: now,
@@ -66,6 +67,15 @@ export async function listRecentDocuments(limit = 10) {
   return documents
     .sort((left, right) => right.lastOpenedAt - left.lastOpenedAt)
     .slice(0, limit);
+}
+
+/** 按磁盘文件路径查找已存在的本地文档（桌面端避免重复建档）。 */
+export async function findDocumentByFilePath(
+  filePath: string,
+): Promise<StoredDocument | undefined> {
+  const database = await getWorkbenchDb();
+  const documents = await database.getAll("documents");
+  return documents.find((document) => document.filePath === filePath);
 }
 
 export { resetWorkbenchDatabase };
