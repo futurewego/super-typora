@@ -4,6 +4,8 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { EditorShell } from "@/components/editor/editor-shell";
+import { EditorEmptyState } from "@/components/workbench/editor-empty-state";
+import { FileDrawer } from "@/components/workbench/file-drawer";
 import { getCachedDocument, saveCachedDocument } from "@/lib/cloud/cache";
 import { getCloudDocument, updateCloudDocument } from "@/lib/cloud/http";
 import { createDocument, getDocument, updateDocument } from "@/lib/storage/documents";
@@ -108,16 +110,7 @@ function EditorContent() {
   }
 
   if (status === "missing" || !document) {
-    return (
-      <main className="flex flex-1 items-center justify-center px-6 py-12 text-center">
-        <div className="space-y-3 rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface)] px-6 py-8 shadow-[var(--shadow)]">
-          <h1 className="text-2xl font-semibold tracking-[-0.05em]">Document not found</h1>
-          <p className="text-sm leading-7 text-[color:var(--muted)]">
-            The requested document could not be loaded from your workspace.
-          </p>
-        </div>
-      </main>
-    );
+    return <EditorEmptyState />;
   }
 
   return <EditorShell initialDocument={document} />;
@@ -131,6 +124,8 @@ export default function EditorPage() {
       </main>
     }>
       <EditorContent />
+      {/* 抽屉常驻：编辑器视图与空状态都能呼出 */}
+      <FileDrawer />
     </Suspense>
   );
 }

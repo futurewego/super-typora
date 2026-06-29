@@ -1,7 +1,10 @@
+"use client";
+
 import type { AppLanguage } from "@/lib/i18n/messages";
 import { getMessages } from "@/lib/i18n/messages";
 import { SaveIndicator } from "@/components/editor/save-indicator";
 import type { SaveState } from "@/stores/editor-store";
+import { useEditorStore } from "@/stores/editor-store";
 
 interface EditorToolbarProps {
   title: string;
@@ -17,6 +20,9 @@ interface EditorToolbarProps {
   fullscreenMode: "none" | "editor" | "preview";
 }
 
+const buttonClass =
+  "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-[color:var(--muted)] transition-colors hover:bg-[color:var(--accent-soft)] hover:text-[color:var(--foreground)]";
+
 export function EditorToolbar({
   title,
   saveState,
@@ -31,53 +37,58 @@ export function EditorToolbar({
   fullscreenMode,
 }: EditorToolbarProps) {
   const copy = getMessages(language);
+  const toggleDrawer = useEditorStore((state) => state.toggleDrawer);
 
   return (
-    <header className="flex flex-col gap-4 border-b border-[color:var(--line)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-      <div className="min-w-0 flex-1">
-        <input
-          value={title}
-          onChange={(event) => onTitleChange(event.target.value)}
-          className="w-full bg-transparent text-2xl font-semibold tracking-[-0.05em] outline-none"
-        />
-      </div>
+    <header className="flex items-center gap-2 border-b border-[color:var(--line)] px-3 py-2">
+      {/* ☰ 抽屉切换（macOS 侧栏惯例，最左） */}
+      <button
+        type="button"
+        onClick={toggleDrawer}
+        aria-label="Toggle files"
+        className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--muted)] transition-colors hover:bg-[color:var(--accent-soft)] hover:text-[color:var(--foreground)]"
+      >
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
-          onClick={onToggleLanguage}
-          className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-        >
-          {copy.languageSwitch}
-        </button>
-        <button
-          type="button"
-          onClick={onSave}
-          className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-        >
-          {copy.toolbar.save}
-        </button>
+      <input
+        value={title}
+        onChange={(event) => onTitleChange(event.target.value)}
+        className="min-w-0 flex-1 bg-transparent text-base font-semibold tracking-[-0.01em] outline-none"
+      />
+
+      <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={onToggleTheme}
-          className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
+          aria-label={theme === "light" ? copy.toolbar.darkMode : copy.toolbar.lightMode}
+          className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--muted)] transition-colors hover:bg-[color:var(--accent-soft)] hover:text-[color:var(--foreground)]"
         >
-          {theme === "light" ? copy.toolbar.darkMode : copy.toolbar.lightMode}
+          {theme === "light" ? (
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+            </svg>
+          )}
+        </button>
+        <button type="button" onClick={onToggleLanguage} className={buttonClass}>
+          {copy.languageSwitch}
+        </button>
+        <button type="button" onClick={onSave} className={buttonClass}>
+          {copy.toolbar.save}
         </button>
         {fullscreenMode === "none" ? (
           <>
-            <button
-              type="button"
-              onClick={onExportHtml}
-              className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-            >
+            <button type="button" onClick={onExportHtml} className={buttonClass}>
               {copy.toolbar.exportHtml}
             </button>
-            <button
-              type="button"
-              onClick={onExportMarkdown}
-              className="rounded-full border border-[color:var(--line)] px-3 py-2 text-xs uppercase tracking-[0.18em] text-[color:var(--muted)]"
-            >
+            <button type="button" onClick={onExportMarkdown} className={buttonClass}>
               {copy.toolbar.exportMarkdown}
             </button>
           </>

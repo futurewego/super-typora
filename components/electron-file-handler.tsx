@@ -19,6 +19,9 @@ export function ElectronFileHandler() {
       return;
     }
 
+    // 标记桌面端，使 vibrancy 透明化样式只作用于 Electron、不破坏 web 构建
+    document.documentElement.classList.add("electron");
+
     const handleOpenFile = async (filePath: string) => {
       try {
         const fileData = await electronAPI.readFile(filePath);

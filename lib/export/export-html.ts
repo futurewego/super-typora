@@ -50,7 +50,7 @@ export function buildHtmlDocument(title: string, bodyHtml: string) {
         margin: 0;
         background: var(--bg);
         color: var(--fg);
-        font-family: "IBM Plex Sans", ui-sans-serif, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
       }
       main {
         max-width: 860px;
@@ -70,7 +70,7 @@ export function buildHtmlDocument(title: string, bodyHtml: string) {
       }
       code,
       pre {
-        font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
       }
       table {
         width: 100%;

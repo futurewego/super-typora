@@ -4,7 +4,7 @@ import type { SaveState } from "@/stores/editor-store";
 
 const TONES: Record<SaveState, string> = {
   dirty: "text-[color:var(--accent)] bg-[color:var(--accent-soft)]",
-  saving: "text-[color:var(--accent-cool)] bg-[color:var(--accent-cool)]/12",
+  saving: "text-[color:var(--muted)] bg-[color:var(--line)]",
   saved: "text-emerald-700 bg-emerald-500/12 dark:text-emerald-300",
   error: "text-rose-700 bg-rose-500/12 dark:text-rose-300",
 };
@@ -19,7 +19,7 @@ export function SaveIndicator({ saveState, language }: SaveIndicatorProps) {
 
   return (
     <span
-      className={`rounded-full px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] ${TONES[saveState]}`}
+      className={`rounded-md px-2 py-1 text-[11px] font-medium ${TONES[saveState]}`}
     >
       {copy.saveState[saveState]}
     </span>

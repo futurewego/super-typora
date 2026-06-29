@@ -1,75 +1,74 @@
-@import "@fontsource/ibm-plex-sans/400.css";
-@import "@fontsource/ibm-plex-sans/500.css";
-@import "@fontsource/ibm-plex-sans/600.css";
-@import "@fontsource/ibm-plex-sans/700.css";
-@import "@fontsource/ibm-plex-mono/400.css";
-@import "@fontsource/ibm-plex-mono/500.css";
-@import "@fontsource/ibm-plex-mono/600.css";
 @import "tailwindcss";
 
+/* 亮色：macOS 原生中性灰 + 系统强调色 */
 :root {
-  --background: #f4efe5;
-  --foreground: #171717;
-  --surface: rgba(255, 250, 244, 0.76);
-  --surface-strong: #fffaf4;
-  --muted: #5a534b;
-  --line: rgba(23, 23, 23, 0.12);
-  --accent: #c96d2d;
-  --accent-soft: rgba(201, 109, 45, 0.14);
-  --accent-cool: #2d7c82;
-  --shadow: 0 24px 80px rgba(38, 29, 20, 0.12);
-  --grid: rgba(23, 23, 23, 0.06);
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-strong: #ffffff;
+  --muted: #86868b;
+  --line: rgba(0, 0, 0, 0.1);
+  --accent: #007aff;
+  --accent: AccentColor;
+  --accent-soft: rgba(0, 122, 255, 0.12);
+  --accent-soft: color-mix(in srgb, AccentColor 14%, transparent);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  --grid: rgba(0, 0, 0, 0.04);
 }
 
 :root[data-theme="light"] {
-  --background: #f4efe5;
-  --foreground: #171717;
-  --surface: rgba(255, 250, 244, 0.76);
-  --surface-strong: #fffaf4;
-  --muted: #5a534b;
-  --line: rgba(23, 23, 23, 0.12);
-  --accent: #c96d2d;
-  --accent-soft: rgba(201, 109, 45, 0.14);
-  --accent-cool: #2d7c82;
-  --shadow: 0 24px 80px rgba(38, 29, 20, 0.12);
-  --grid: rgba(23, 23, 23, 0.06);
+  --background: #f5f5f7;
+  --foreground: #1d1d1f;
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-strong: #ffffff;
+  --muted: #86868b;
+  --line: rgba(0, 0, 0, 0.1);
+  --accent: #007aff;
+  --accent: AccentColor;
+  --accent-soft: rgba(0, 122, 255, 0.12);
+  --accent-soft: color-mix(in srgb, AccentColor 14%, transparent);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+  --grid: rgba(0, 0, 0, 0.04);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "IBM Plex Sans";
-  --font-mono: "IBM Plex Mono";
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
+/* 暗色：macOS 原生深灰 */
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0d1113;
-    --foreground: #edf0ef;
-    --surface: rgba(17, 24, 26, 0.72);
-    --surface-strong: #141c1f;
-    --muted: #9aa8a4;
-    --line: rgba(237, 240, 239, 0.1);
-    --accent: #e9a15f;
-    --accent-soft: rgba(233, 161, 95, 0.14);
-    --accent-cool: #6ec7c1;
-    --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
-    --grid: rgba(237, 240, 239, 0.06);
+    --background: #1c1c1e;
+    --foreground: #f5f5f7;
+    --surface: rgba(40, 40, 42, 0.7);
+    --surface-strong: #262628;
+    --muted: #98989d;
+    --line: rgba(255, 255, 255, 0.12);
+    --accent: #0a84ff;
+    --accent: AccentColor;
+    --accent-soft: rgba(10, 132, 255, 0.18);
+    --accent-soft: color-mix(in srgb, AccentColor 20%, transparent);
+    --shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    --grid: rgba(255, 255, 255, 0.05);
   }
 }
 
 :root[data-theme="dark"] {
-  --background: #0d1113;
-  --foreground: #edf0ef;
-  --surface: rgba(17, 24, 26, 0.72);
-  --surface-strong: #141c1f;
-  --muted: #9aa8a4;
-  --line: rgba(237, 240, 239, 0.1);
-  --accent: #e9a15f;
-  --accent-soft: rgba(233, 161, 95, 0.14);
-  --accent-cool: #6ec7c1;
-  --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
-  --grid: rgba(237, 240, 239, 0.06);
+  --background: #1c1c1e;
+  --foreground: #f5f5f7;
+  --surface: rgba(40, 40, 42, 0.7);
+  --surface-strong: #262628;
+  --muted: #98989d;
+  --line: rgba(255, 255, 255, 0.12);
+  --accent: #0a84ff;
+  --accent: AccentColor;
+  --accent-soft: rgba(10, 132, 255, 0.18);
+  --accent-soft: color-mix(in srgb, AccentColor 20%, transparent);
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  --grid: rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -83,13 +82,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "IBM Plex Sans", sans-serif;
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
-    radial-gradient(circle at top left, rgba(201, 109, 45, 0.12), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(45, 124, 130, 0.1), transparent 24%);
-  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
 }
 
 a,
@@ -136,4 +129,20 @@ button {
 }
 .titlebar :where(button, a, input, select) {
   -webkit-app-region: no-drag;
+}
+
+/* ---- Electron 桌面端：透出窗口 vibrancy 毛玻璃 ---- */
+/* body 实色背景 + 网格 + 暖色渐变会挡住 vibrancy，桌面端全部透明 */
+html.electron body {
+  background: transparent;
+  background-image: none;
+}
+/* 噪点层为半透明，会糊掉毛玻璃，桌面端禁用 */
+html.electron .grain::after {
+  display: none;
+}
+/* 编辑区外壳：双栏模式下 grid 间隙透出此层，桌面端透明以显 vibrancy；
+   编辑器/预览面板自身仍为 --surface-strong 实色，保证正文可读 */
+html.electron .editor-canvas {
+  background: transparent;
 }

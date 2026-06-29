@@ -108,6 +108,7 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
   const setTitle = useEditorStore((state) => state.setTitle);
   const setMarkdown = useEditorStore((state) => state.setMarkdown);
   const setSaveState = useEditorStore((state) => state.setSaveState);
+  const toggleDrawer = useEditorStore((state) => state.toggleDrawer);
   const handleSaveRef = useRef<() => void>(() => {});
 
   const copy = getMessages(language);
@@ -125,6 +126,11 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
       if (event.key === "Escape") {
         setFullscreenMode("none");
       }
+      // Cmd/Ctrl+\ 开合文件抽屉
+      if ((event.metaKey || event.ctrlKey) && event.key === "\\") {
+        event.preventDefault();
+        toggleDrawer();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -132,7 +138,7 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [toggleDrawer]);
 
   // Cmd/Ctrl+S 保存（Web 与桌面通用）+ 桌面菜单「Save」
   useEffect(() => {
@@ -345,7 +351,7 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
           {title || "Untitled"}
         </span>
       </header>
-      <section className="flex flex-1 flex-col overflow-hidden bg-[color:var(--surface)]">
+      <section className="editor-canvas flex flex-1 flex-col overflow-hidden bg-[color:var(--surface)]">
         <EditorToolbar
           title={title}
           saveState={saveState}
@@ -410,6 +416,7 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
               <div className="pt-4">
                 <MarkdownEditor
                   value={markdown}
+                  theme={theme}
                   onChange={(nextMarkdown) => {
                     setMarkdown(nextMarkdown);
                     setSaveState("dirty");

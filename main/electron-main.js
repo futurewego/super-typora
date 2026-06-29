@@ -88,6 +88,12 @@ function createWindow() {
     minWidth: 720,
     minHeight: 480,
     titleBarStyle: "hiddenInset",
+    // macOS 原生毛玻璃：透出桌面壁纸的 Finder/Notes 质感
+    vibrancy: "under-window",
+    // active：窗口失焦时毛玻璃不变灰
+    visualEffectState: "active",
+    // 透明 ARGB，让 vibrancy 透出（不可用默认不透明白）
+    backgroundColor: "#00000000",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,

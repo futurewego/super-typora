@@ -13,6 +13,11 @@ interface EditorStore {
   setTitle: (title: string) => void;
   setMarkdown: (markdown: string) => void;
   setSaveState: (saveState: SaveState) => void;
+  // 文件抽屉开合：☰ 按钮（toolbar/空状态）与抽屉本体在不同子树，用 store 共享
+  drawerOpen: boolean;
+  openDrawer: () => void;
+  closeDrawer: () => void;
+  toggleDrawer: () => void;
 }
 
 export const useEditorStore = create<EditorStore>((set) => ({
@@ -36,5 +41,15 @@ export const useEditorStore = create<EditorStore>((set) => ({
   },
   setSaveState: (saveState) => {
     set({ saveState });
+  },
+  drawerOpen: false,
+  openDrawer: () => {
+    set({ drawerOpen: true });
+  },
+  closeDrawer: () => {
+    set({ drawerOpen: false });
+  },
+  toggleDrawer: () => {
+    set((state) => ({ drawerOpen: !state.drawerOpen }));
   },
 }));
