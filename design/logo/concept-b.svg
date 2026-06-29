@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bgB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232b35"/>
+      <stop offset="1" stop-color="#0a0d11"/>
+    </linearGradient>
+    <linearGradient id="blueB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5aa9ff"/>
+      <stop offset="1" stop-color="#0a84ff"/>
+    </linearGradient>
+    <linearGradient id="shineB" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="232" fill="url(#bgB)"/>
+  <rect width="1024" height="1024" rx="232" fill="url(#shineB)"/>
+  <!-- WYSIWYG：文本行（所见即所得文档） -->
+  <g fill="#e9edf2">
+    <rect x="300" y="338" width="300" height="58" rx="29"/>
+    <rect x="300" y="483" width="424" height="58" rx="29"/>
+    <rect x="300" y="628" width="240" height="58" rx="29"/>
+  </g>
+  <!-- 醒目蓝色光标/插入点：直接在渲染视图里编辑 -->
+  <rect x="690" y="300" width="58" height="424" rx="29" fill="url(#blueB)"/>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bgC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232b35"/>
+      <stop offset="1" stop-color="#0a0d11"/>
+    </linearGradient>
+    <linearGradient id="blueC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5aa9ff"/>
+      <stop offset="1" stop-color="#0a84ff"/>
+    </linearGradient>
+    <linearGradient id="shineC" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="232" fill="url(#bgC)"/>
+  <rect width="1024" height="1024" rx="232" fill="url(#shineC)"/>
+  <!-- 双下角标：super（快进/加速）+ markdown（向下） -->
+  <g stroke="url(#blueC)" stroke-width="96" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M320 360 L512 540 L704 360"/>
+    <path d="M320 600 L512 780 L704 600"/>
+  </g>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#252e39"/>
+      <stop offset="1" stop-color="#0a0d11"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="#62acff"/>
+      <stop offset="1" stop-color="#0a84ff"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="0.45" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="232" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="232" fill="url(#shine)"/>
+  <!-- Super 的 S（重磅斜体，速度感） -->
+  <text x="455" y="690" text-anchor="middle"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="600" font-weight="800" font-style="italic"
+        fill="url(#blue)">S</text>
+  <!-- Markdown 的 ↓（白，作为 super 的尾迹） -->
+  <g stroke="#eef5ff" stroke-width="72" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M726 452 L726 690"/>
+    <path d="M641 605 L726 700 L811 605"/>
+  </g>
+</svg>

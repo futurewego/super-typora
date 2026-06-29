@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bgA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232b35"/>
+      <stop offset="1" stop-color="#0a0d11"/>
+    </linearGradient>
+    <linearGradient id="blueA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5aa9ff"/>
+      <stop offset="1" stop-color="#0a84ff"/>
+    </linearGradient>
+    <linearGradient id="shineA" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="232" fill="url(#bgA)"/>
+  <rect width="1024" height="1024" rx="232" fill="url(#shineA)"/>
+  <!-- 斜体重磅 S：速度/super 感 -->
+  <text x="495" y="700" text-anchor="middle"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="620" font-weight="800" font-style="italic"
+        fill="url(#blueA)">S</text>
+  <!-- markdown 下箭头：作为 super 的速度尾迹 -->
+  <g stroke="#eaf3ff" stroke-width="62" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M735 470 L735 690"/>
+    <path d="M660 615 L735 700 L810 615"/>
+  </g>
+</svg>
