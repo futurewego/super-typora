@@ -147,38 +147,3 @@ html.electron .editor-canvas {
   background: transparent;
 }
 
-/* ---- Milkdown / Crepe 主题：映射到 app token，亮暗随 [data-theme] 自动切换 ---- */
-.milkdown {
-  --crepe-color-background: var(--surface-strong);
-  --crepe-color-on-background: var(--foreground);
-  --crepe-color-surface: var(--surface-strong);
-  --crepe-color-surface-low: var(--surface);
-  --crepe-color-on-surface: var(--foreground);
-  --crepe-color-on-surface-variant: var(--muted);
-  --crepe-color-outline: var(--line);
-  --crepe-color-primary: var(--accent);
-  --crepe-color-secondary: var(--accent-soft);
-  --crepe-color-on-secondary: var(--foreground);
-  --crepe-color-inverse: var(--foreground);
-  --crepe-color-on-inverse: var(--surface-strong);
-  --crepe-color-inline-code: var(--accent);
-  --crepe-color-error: #ff453a;
-  --crepe-color-hover: var(--accent-soft);
-  --crepe-color-selected: var(--accent-soft);
-  --crepe-color-inline-area: var(--surface);
-
-  --crepe-font-title: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-  --crepe-font-default: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-  --crepe-font-code: ui-monospace, "SF Mono", Menlo, monospace;
-}
-.milkdown-host {
-  overflow: auto;
-}
-/* Crepe 编辑器铺满容器，透明背景以与单栏画布一致 */
-.milkdown-host .milkdown {
-  height: 100%;
-  background: transparent;
-}
-.milkdown-host .milkdown .ProseMirror {
-  padding: 8px 4px 64px;
-}
