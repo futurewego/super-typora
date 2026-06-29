@@ -3,7 +3,7 @@
 import type { AppLanguage } from "@/lib/i18n/messages";
 import { getMessages } from "@/lib/i18n/messages";
 import { SaveIndicator } from "@/components/editor/save-indicator";
-import type { EditMode, SaveState } from "@/stores/editor-store";
+import type { LayoutMode, SaveState } from "@/stores/editor-store";
 import { useEditorStore } from "@/stores/editor-store";
 
 interface EditorToolbarProps {
@@ -15,10 +15,10 @@ interface EditorToolbarProps {
   onExportHtml: () => void;
   onToggleTheme: () => void;
   onToggleLanguage: () => void;
-  onToggleEditMode: () => void;
+  onSetLayoutMode: (mode: LayoutMode) => void;
   theme: "light" | "dark";
   language: AppLanguage;
-  editMode: EditMode;
+  layoutMode: LayoutMode;
 }
 
 const buttonClass =
@@ -33,13 +33,20 @@ export function EditorToolbar({
   onExportHtml,
   onToggleTheme,
   onToggleLanguage,
-  onToggleEditMode,
+  onSetLayoutMode,
   theme,
   language,
-  editMode,
+  layoutMode,
 }: EditorToolbarProps) {
   const copy = getMessages(language);
   const toggleDrawer = useEditorStore((state) => state.toggleDrawer);
+
+  const segClass = (active: boolean) =>
+    `flex h-7 w-8 items-center justify-center rounded transition-colors ${
+      active
+        ? "bg-[color:var(--surface-strong)] text-[color:var(--accent)] shadow-sm"
+        : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
+    }`;
 
   return (
     <header className="flex items-center gap-2 border-b border-[color:var(--line)] px-3 py-2">
@@ -79,22 +86,45 @@ export function EditorToolbar({
             </svg>
           )}
         </button>
-        {/* 所见即所得 ↔ markdown 源码 切换 */}
-        <button
-          type="button"
-          onClick={onToggleEditMode}
-          aria-label={editMode === "wysiwyg" ? "Source mode" : "Preview mode"}
-          title={editMode === "wysiwyg" ? "Source mode" : "Preview mode"}
-          className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-[color:var(--accent-soft)] ${
-            editMode === "source"
-              ? "text-[color:var(--accent)]"
-              : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
-          }`}
-        >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12" />
-          </svg>
-        </button>
+        {/* 布局三态：仅编辑 / 并排 / 仅预览 */}
+        <div className="flex items-center gap-0.5 rounded-md bg-[color:var(--accent-soft)] p-0.5">
+          <button
+            type="button"
+            onClick={() => onSetLayoutMode("editor")}
+            aria-label="Editor only"
+            title="Editor only"
+            className={segClass(layoutMode === "editor")}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="5" width="16" height="14" rx="2" />
+              <path d="M8 9h8M8 13h6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => onSetLayoutMode("split")}
+            aria-label="Split view"
+            title="Split view"
+            className={segClass(layoutMode === "split")}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="5" width="16" height="14" rx="2" />
+              <path d="M12 5v14" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => onSetLayoutMode("preview")}
+            aria-label="Preview only"
+            title="Preview only"
+            className={segClass(layoutMode === "preview")}
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
         <button type="button" onClick={onToggleLanguage} className={buttonClass}>
           {copy.languageSwitch}
         </button>
