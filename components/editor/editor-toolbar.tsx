@@ -3,7 +3,7 @@
 import type { AppLanguage } from "@/lib/i18n/messages";
 import { getMessages } from "@/lib/i18n/messages";
 import { SaveIndicator } from "@/components/editor/save-indicator";
-import type { SaveState } from "@/stores/editor-store";
+import type { EditMode, SaveState } from "@/stores/editor-store";
 import { useEditorStore } from "@/stores/editor-store";
 
 interface EditorToolbarProps {
@@ -15,9 +15,10 @@ interface EditorToolbarProps {
   onExportHtml: () => void;
   onToggleTheme: () => void;
   onToggleLanguage: () => void;
+  onToggleEditMode: () => void;
   theme: "light" | "dark";
   language: AppLanguage;
-  fullscreenMode: "none" | "editor" | "preview";
+  editMode: EditMode;
 }
 
 const buttonClass =
@@ -32,9 +33,10 @@ export function EditorToolbar({
   onExportHtml,
   onToggleTheme,
   onToggleLanguage,
+  onToggleEditMode,
   theme,
   language,
-  fullscreenMode,
+  editMode,
 }: EditorToolbarProps) {
   const copy = getMessages(language);
   const toggleDrawer = useEditorStore((state) => state.toggleDrawer);
@@ -77,22 +79,34 @@ export function EditorToolbar({
             </svg>
           )}
         </button>
+        {/* 所见即所得 ↔ markdown 源码 切换 */}
+        <button
+          type="button"
+          onClick={onToggleEditMode}
+          aria-label={editMode === "wysiwyg" ? "Source mode" : "Preview mode"}
+          title={editMode === "wysiwyg" ? "Source mode" : "Preview mode"}
+          className={`flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-[color:var(--accent-soft)] ${
+            editMode === "source"
+              ? "text-[color:var(--accent)]"
+              : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
+          }`}
+        >
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12" />
+          </svg>
+        </button>
         <button type="button" onClick={onToggleLanguage} className={buttonClass}>
           {copy.languageSwitch}
         </button>
         <button type="button" onClick={onSave} className={buttonClass}>
           {copy.toolbar.save}
         </button>
-        {fullscreenMode === "none" ? (
-          <>
-            <button type="button" onClick={onExportHtml} className={buttonClass}>
-              {copy.toolbar.exportHtml}
-            </button>
-            <button type="button" onClick={onExportMarkdown} className={buttonClass}>
-              {copy.toolbar.exportMarkdown}
-            </button>
-          </>
-        ) : null}
+        <button type="button" onClick={onExportHtml} className={buttonClass}>
+          {copy.toolbar.exportHtml}
+        </button>
+        <button type="button" onClick={onExportMarkdown} className={buttonClass}>
+          {copy.toolbar.exportMarkdown}
+        </button>
         <SaveIndicator saveState={saveState} language={language} />
       </div>
     </header>

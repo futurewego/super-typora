@@ -3,14 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
-import { PreviewPane } from "@/components/editor/preview-pane";
+import { WysiwygEditor } from "@/components/editor/wysiwyg-editor";
 import { EditorToolbar } from "@/components/editor/editor-toolbar";
 import { downloadHtml } from "@/lib/export/export-html";
 import { downloadMarkdown } from "@/lib/export/export-md";
 import { saveCachedDocument } from "@/lib/cloud/cache";
 import { createCloudDocument, updateCloudDocument } from "@/lib/cloud/http";
 import type { AppLanguage } from "@/lib/i18n/messages";
-import { getMessages } from "@/lib/i18n/messages";
 import { saveDraft } from "@/lib/storage/drafts";
 import { updateDocument } from "@/lib/storage/documents";
 import { getPreferences, savePreferences } from "@/lib/storage/preferences";
@@ -24,70 +23,6 @@ interface EditorShellProps {
   initialDocument: StoredDocument;
 }
 
-interface EditorLayoutState {
-  editorWidth?: number;
-}
-
-const LAYOUT_STORAGE_KEY = "super-markdown-workbench:layout";
-const DEFAULT_EDITOR_MIN = 320;
-const DEFAULT_PREVIEW_MIN = 320;
-
-function FullscreenToggle({
-  label,
-  onClick,
-  expanded,
-}: {
-  label: string;
-  onClick: () => void;
-  expanded: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      onClick={onClick}
-      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[color:var(--line)] text-[color:var(--muted)] transition-colors hover:border-[color:var(--accent)] hover:text-[color:var(--foreground)]"
-    >
-      {expanded ? (
-        <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M6 6H2V2M10 6h4V2M6 10H2v4M10 10h4v4" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 16 16" aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-          <path d="M6 2H2v4M10 2h4v4M2 10v4h4M14 10v4h-4" />
-        </svg>
-      )}
-    </button>
-  );
-}
-
-function readLayoutState(): EditorLayoutState {
-  if (typeof window === "undefined") {
-    return {};
-  }
-
-  const raw = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
-
-  if (!raw) {
-    return {};
-  }
-
-  try {
-    return JSON.parse(raw) as EditorLayoutState;
-  } catch {
-    return {};
-  }
-}
-
-function writeLayoutState(nextState: EditorLayoutState) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  window.localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(nextState));
-}
-
 export function EditorShell({ initialDocument }: EditorShellProps) {
   const [theme, setTheme] = useState<"light" | "dark">(
     () => getPreferences().theme,
@@ -95,8 +30,6 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
   const [language, setLanguage] = useState<AppLanguage>(
     () => getPreferences().language,
   );
-  const [layout, setLayout] = useState<EditorLayoutState>(() => readLayoutState());
-  const [fullscreenMode, setFullscreenMode] = useState<"none" | "editor" | "preview">("none");
 
   const title = useEditorStore((state) => state.title);
   const markdown = useEditorStore((state) => state.markdown);
@@ -109,9 +42,9 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
   const setMarkdown = useEditorStore((state) => state.setMarkdown);
   const setSaveState = useEditorStore((state) => state.setSaveState);
   const toggleDrawer = useEditorStore((state) => state.toggleDrawer);
+  const editMode = useEditorStore((state) => state.editMode);
+  const toggleEditMode = useEditorStore((state) => state.toggleEditMode);
   const handleSaveRef = useRef<() => void>(() => {});
-
-  const copy = getMessages(language);
 
   useEffect(() => {
     hydrateFromDocument(initialDocument);
@@ -123,9 +56,6 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setFullscreenMode("none");
-      }
       // Cmd/Ctrl+\ 开合文件抽屉
       if ((event.metaKey || event.ctrlKey) && event.key === "\\") {
         event.preventDefault();
@@ -159,10 +89,6 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
       cleanupMenuSave?.();
     };
   }, []);
-
-  useEffect(() => {
-    writeLayoutState(layout);
-  }, [layout]);
 
   useEffect(() => {
     if (!document) {
@@ -306,44 +232,6 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
   // 保持最新的 handleSave 引用，供快捷键 / 菜单事件调用，避免闭包过期
   handleSaveRef.current = handleSave;
 
-  function beginResize(event: React.MouseEvent<HTMLDivElement>) {
-    if (fullscreenMode !== "none") {
-      return;
-    }
-
-    event.preventDefault();
-
-    const startX = event.clientX;
-    const startEditorWidth = layout.editorWidth ?? DEFAULT_EDITOR_MIN;
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const delta = moveEvent.clientX - startX;
-      setLayout((current) => ({
-        ...current,
-        editorWidth: Math.max(DEFAULT_EDITOR_MIN, startEditorWidth + delta),
-      }));
-    };
-
-    const handleMouseUp = () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  }
-
-  const baseColumns = layout.editorWidth
-    ? `${layout.editorWidth}px 10px minmax(${DEFAULT_PREVIEW_MIN}px, 1fr)`
-    : `minmax(${DEFAULT_EDITOR_MIN}px, 1fr) 10px minmax(${DEFAULT_PREVIEW_MIN}px, 1fr)`;
-
-  const gridTemplateColumns =
-    fullscreenMode === "editor"
-      ? "minmax(0, 1fr)"
-      : fullscreenMode === "preview"
-        ? "minmax(0, 1fr)"
-        : baseColumns;
-
   return (
     <main className="flex flex-1 flex-col">
       <header className="titlebar flex items-center justify-center px-24">
@@ -357,7 +245,8 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
           saveState={saveState}
           theme={theme}
           language={language}
-          fullscreenMode={fullscreenMode}
+          editMode={editMode}
+          onToggleEditMode={toggleEditMode}
           onExportMarkdown={() => {
             downloadMarkdown(title, markdown);
           }}
@@ -385,35 +274,22 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
         />
         <div
           data-testid="editor-grid"
-          className={`grid flex-1 items-stretch gap-0 px-4 py-4 sm:px-5 sm:py-5 ${
-            fullscreenMode === "none" ? "" : "bg-[color:var(--surface-strong)]"
-          }`}
-          style={{ gridTemplateColumns }}
+          data-edit-mode={editMode}
+          className="flex flex-1 flex-col px-4 py-4"
         >
-          {fullscreenMode !== "preview" ? (
-            <section className="min-w-0 rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface-strong)] p-5">
-              <div className="flex items-center justify-between border-b border-[color:var(--line)] pb-3">
-                <h2 className="text-sm font-medium uppercase tracking-[0.22em] text-[color:var(--muted)]">
-                  {copy.panels.editor}
-                </h2>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs text-[color:var(--muted)]">{copy.panels.draft}</span>
-                  <FullscreenToggle
-                    label={
-                      fullscreenMode === "editor"
-                        ? copy.toolbar.exitFullscreen
-                        : copy.toolbar.editorFullscreen
-                    }
-                    expanded={fullscreenMode === "editor"}
-                    onClick={() => {
-                      setFullscreenMode((current) =>
-                        current === "editor" ? "none" : "editor",
-                      );
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="pt-4">
+          <section className="flex min-h-0 flex-1 flex-col rounded-[1.5rem] border border-[color:var(--line)] bg-[color:var(--surface-strong)] p-5">
+            <div className="min-h-0 flex-1">
+              {editMode === "wysiwyg" ? (
+                <WysiwygEditor
+                  key={`wysiwyg-${document?.id ?? "none"}`}
+                  value={markdown}
+                  theme={theme}
+                  onChange={(nextMarkdown) => {
+                    setMarkdown(nextMarkdown);
+                    setSaveState("dirty");
+                  }}
+                />
+              ) : (
                 <MarkdownEditor
                   value={markdown}
                   theme={theme}
@@ -422,44 +298,9 @@ export function EditorShell({ initialDocument }: EditorShellProps) {
                     setSaveState("dirty");
                   }}
                 />
-              </div>
-            </section>
-          ) : null}
-
-          {fullscreenMode === "none" ? (
-            <div className="flex items-center justify-center px-1.5">
-              <div
-                role="separator"
-                aria-orientation="vertical"
-                data-testid="resize-handle-editor-preview"
-                onMouseDown={beginResize}
-                className="h-full min-h-24 w-2 cursor-col-resize rounded-full bg-[color:var(--line)] transition-colors hover:bg-[color:var(--accent)]"
-              />
+              )}
             </div>
-          ) : null}
-
-          {fullscreenMode !== "editor" ? (
-            <PreviewPane
-              markdown={markdown}
-              title={copy.panels.preview}
-              meta={copy.panels.live}
-              action={
-                <FullscreenToggle
-                  label={
-                    fullscreenMode === "preview"
-                      ? copy.toolbar.exitFullscreen
-                      : copy.toolbar.previewFullscreen
-                  }
-                  expanded={fullscreenMode === "preview"}
-                  onClick={() => {
-                    setFullscreenMode((current) =>
-                      current === "preview" ? "none" : "preview",
-                    );
-                  }}
-                />
-              }
-            />
-          ) : null}
+          </section>
         </div>
       </section>
     </main>
