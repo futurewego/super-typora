@@ -2,32 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+import { renderMermaidSvg } from "@/lib/markdown/mermaid-core";
+
 interface MermaidDiagramProps {
   chart: string;
-}
-
-function normalizeMermaidChart(chart: string) {
-  const lines = chart.replace(/\r\n/g, "\n").split("\n");
-  const normalized: string[] = [];
-
-  for (const line of lines) {
-    const trimmed = line.replace(/\t/g, "  ");
-
-    if (trimmed.trim().length === 0) {
-      normalized.push("");
-      continue;
-    }
-
-    const pieces = trimmed.split(
-      /(?<=[\]\)])\s{2,}(?=[A-Za-z_][A-Za-z0-9_]*\s*(?:-->|-\.|\.->|==>|---|-->))/g,
-    );
-    normalized.push(...pieces);
-  }
-
-  while (normalized[0] === "") normalized.shift();
-  while (normalized[normalized.length - 1] === "") normalized.pop();
-
-  return normalized.map((line) => line.replace(/\s+$/, "")).join("\n");
 }
 
 export function MermaidDiagram({ chart }: MermaidDiagramProps) {
@@ -39,23 +17,7 @@ export function MermaidDiagram({ chart }: MermaidDiagramProps) {
 
     void (async () => {
       try {
-        const mermaid = await import("mermaid");
-        const normalizedChart = normalizeMermaidChart(chart);
-
-        mermaid.default.initialize({
-          startOnLoad: false,
-          securityLevel: "strict",
-          theme: "neutral",
-        });
-
-        await mermaid.default.parse(normalizedChart);
-        const id = `mermaid-${crypto.randomUUID()}`;
-        const rendered = await mermaid.default.render(id, normalizedChart);
-        const nextSvg = rendered.svg;
-
-        if (/<text[^>]*>\s*Syntax error in text/i.test(nextSvg)) {
-          throw new Error("Mermaid reported a syntax error");
-        }
+        const nextSvg = await renderMermaidSvg(chart);
 
         if (!cancelled) {
           setSvg(nextSvg);

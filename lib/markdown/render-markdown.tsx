@@ -5,6 +5,7 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeSanitize from "rehype-sanitize";
 import GithubSlugger from "github-slugger";
 import { MermaidDiagram } from "@/components/markdown/mermaid-diagram";
+import { isMermaidLanguage } from "@/lib/markdown/mermaid-core";
 
 function flattenChildren(children: ReactNode): string {
   if (typeof children === "string" || typeof children === "number") {
@@ -22,16 +23,6 @@ function flattenChildren(children: ReactNode): string {
   return "";
 }
 
-function isMermaidBlock(language: string | undefined, value: string) {
-  if (language === "mermaid" || language === "graph" || language === "flowchart") {
-    return true;
-  }
-
-  return /^(graph|flowchart|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|journey|pie|mindmap|timeline|quadrantChart)\b/m.test(
-    value.trim(),
-  );
-}
-
 export function RenderMarkdown({ markdown }: { markdown: string }) {
   const slugger = new GithubSlugger();
 
@@ -45,10 +36,12 @@ export function RenderMarkdown({ markdown }: { markdown: string }) {
   } as const;
 
   return (
-    <div className="prose prose-zinc max-w-none dark:prose-invert prose-pre:rounded-2xl prose-pre:border prose-pre:border-white/10 prose-code:before:hidden prose-code:after:hidden">
+    <div className="prose prose-zinc max-w-none prose-pre:rounded-2xl prose-pre:border prose-pre:border-black/10 prose-code:before:hidden prose-code:after:hidden">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight, rehypeSanitize]}
+        // 顺序要点：先 sanitize 清洗 HAST，再由 highlight 注入可信的 hljs class。
+        // 反过来（highlight 在前）会被 sanitize 的默认 schema 剥掉全部 hljs-* class，导致零高亮。
+        rehypePlugins={[rehypeSanitize, rehypeHighlight]}
         components={{
           table: ({ children }) => (
             <div className="my-6 overflow-auto rounded-2xl border border-[color:var(--line)] bg-[color:var(--surface)]">
@@ -80,7 +73,7 @@ export function RenderMarkdown({ markdown }: { markdown: string }) {
                 ? /language-(\w+)/.exec(children.props.className)?.[1]
                 : undefined;
 
-            if (isMermaidBlock(language, value)) {
+            if (isMermaidLanguage(language, value)) {
               return <MermaidDiagram chart={value} />;
             }
 

@@ -5,13 +5,6 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("electronAPI", {
   isElectron: true,
 
-  // 主进程通知渲染进程打开某个文件（文件关联 / 菜单 Open / 拖拽）
-  onOpenFile(callback) {
-    const listener = (_event, filePath) => callback(filePath);
-    ipcRenderer.on("open-file", listener);
-    return () => ipcRenderer.removeListener("open-file", listener);
-  },
-
   // 菜单 / 快捷键触发的保存
   onMenuSave(callback) {
     const listener = () => callback();
@@ -33,5 +26,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   saveFileAs(suggestedName, content) {
     return ipcRenderer.invoke("save-file-as", suggestedName, content);
+  },
+
+  // 多窗口：在新窗口打开某文档 / 新建文档 / 登记去重键
+  openDocWindow(docId) {
+    return ipcRenderer.invoke("win:open-doc", docId);
+  },
+  newDocWindow() {
+    return ipcRenderer.invoke("win:new");
+  },
+  registerWindow(info) {
+    ipcRenderer.send("win:register", info);
   },
 });

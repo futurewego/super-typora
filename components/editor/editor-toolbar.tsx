@@ -1,9 +1,11 @@
 "use client";
 
+import { useCallback, useRef, useState } from "react";
+
 import type { AppLanguage } from "@/lib/i18n/messages";
 import { getMessages } from "@/lib/i18n/messages";
 import { SaveIndicator } from "@/components/editor/save-indicator";
-import type { LayoutMode, SaveState } from "@/stores/editor-store";
+import type { SaveState } from "@/stores/editor-store";
 import { useEditorStore } from "@/stores/editor-store";
 
 interface EditorToolbarProps {
@@ -13,12 +15,11 @@ interface EditorToolbarProps {
   onSave: () => void;
   onExportMarkdown: () => void;
   onExportHtml: () => void;
-  onToggleTheme: () => void;
   onToggleLanguage: () => void;
-  onSetLayoutMode: (mode: LayoutMode) => void;
-  theme: "light" | "dark";
   language: AppLanguage;
-  layoutMode: LayoutMode;
+  // 编辑/只读模式切换：默认只读预览，点击进入编辑
+  isEditing: boolean;
+  onToggleEdit: () => void;
 }
 
 const buttonClass =
@@ -31,22 +32,48 @@ export function EditorToolbar({
   onSave,
   onExportMarkdown,
   onExportHtml,
-  onToggleTheme,
   onToggleLanguage,
-  onSetLayoutMode,
-  theme,
   language,
-  layoutMode,
+  isEditing,
+  onToggleEdit,
 }: EditorToolbarProps) {
   const copy = getMessages(language);
   const toggleDrawer = useEditorStore((state) => state.toggleDrawer);
+  const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const segClass = (active: boolean) =>
-    `flex h-7 w-8 items-center justify-center rounded transition-colors ${
-      active
-        ? "bg-[color:var(--surface-strong)] text-[color:var(--accent)] shadow-sm"
-        : "text-[color:var(--muted)] hover:text-[color:var(--foreground)]"
-    }`;
+  // 复制全文：抓取所见即所得编辑区(.milkdown)的富文本，优先 text/html，降级纯文本
+  const handleCopy = useCallback(async () => {
+    if (typeof document === "undefined") {
+      return;
+    }
+    const node = document.querySelector(".milkdown") as HTMLElement | null;
+    if (!node) {
+      return;
+    }
+    const html = node.innerHTML;
+    const text = node.innerText;
+
+    try {
+      if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([text], { type: "text/plain" }),
+          }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(text);
+      }
+      setCopied(true);
+      if (copiedTimer.current) {
+        clearTimeout(copiedTimer.current);
+      }
+      copiedTimer.current = setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // 剪贴板权限被拒时静默失败，不打断编辑
+    }
+  }, []);
 
   return (
     <header className="flex items-center gap-2 border-b border-[color:var(--line)] px-3 py-2">
@@ -69,62 +96,73 @@ export function EditorToolbar({
       />
 
       <div className="flex items-center gap-1">
+        {/* 编辑/预览模式切换：默认只读，编辑态用 accent 实底高亮 */}
         <button
           type="button"
-          onClick={onToggleTheme}
-          aria-label={theme === "light" ? copy.toolbar.darkMode : copy.toolbar.lightMode}
-          className="flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--muted)] transition-colors hover:bg-[color:var(--accent-soft)] hover:text-[color:var(--foreground)]"
+          onClick={onToggleEdit}
+          aria-pressed={isEditing}
+          title={
+            isEditing
+              ? language === "zh"
+                ? "退出编辑（预览）"
+                : "Preview"
+              : language === "zh"
+                ? "进入编辑"
+                : "Edit"
+          }
+          className={
+            isEditing
+              ? "flex items-center gap-1.5 rounded-md bg-[color:var(--accent)] px-2.5 py-1.5 text-sm text-white transition-colors"
+              : buttonClass
+          }
         >
-          {theme === "light" ? (
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+          {isEditing ? (
+            <>
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              {language === "zh" ? "预览" : "Preview"}
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+              {language === "zh" ? "编辑" : "Edit"}
+            </>
+          )}
+        </button>
+        {/* 复制全文（富文本） */}
+        <button
+          type="button"
+          onClick={() => {
+            void handleCopy();
+          }}
+          aria-label="Copy content"
+          title={
+            copied
+              ? language === "zh"
+                ? "已复制"
+                : "Copied"
+              : language === "zh"
+                ? "复制全文"
+                : "Copy"
+          }
+          className={buttonClass}
+        >
+          {copied ? (
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 6 9 17l-5-5" />
             </svg>
           ) : (
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
           )}
         </button>
-        {/* 布局三态：仅编辑 / 并排 / 仅预览 */}
-        <div className="flex items-center gap-0.5 rounded-md bg-[color:var(--accent-soft)] p-0.5">
-          <button
-            type="button"
-            onClick={() => onSetLayoutMode("editor")}
-            aria-label="Editor only"
-            title="Editor only"
-            className={segClass(layoutMode === "editor")}
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="5" width="16" height="14" rx="2" />
-              <path d="M8 9h8M8 13h6" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => onSetLayoutMode("split")}
-            aria-label="Split view"
-            title="Split view"
-            className={segClass(layoutMode === "split")}
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="5" width="16" height="14" rx="2" />
-              <path d="M12 5v14" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => onSetLayoutMode("preview")}
-            aria-label="Preview only"
-            title="Preview only"
-            className={segClass(layoutMode === "preview")}
-          >
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </button>
-        </div>
         <button type="button" onClick={onToggleLanguage} className={buttonClass}>
           {copy.languageSwitch}
         </button>

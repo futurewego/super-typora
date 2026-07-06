@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { EditorShell } from "@/components/editor/editor-shell";
@@ -8,17 +8,27 @@ import { EditorEmptyState } from "@/components/workbench/editor-empty-state";
 import { FileDrawer } from "@/components/workbench/file-drawer";
 import { getCachedDocument, saveCachedDocument } from "@/lib/cloud/cache";
 import { getCloudDocument, updateCloudDocument } from "@/lib/cloud/http";
-import { createDocument, getDocument, updateDocument } from "@/lib/storage/documents";
-import { isElectron } from "@/lib/utils/is-electron";
+import {
+  createDocument,
+  findDocumentByFilePath,
+  getDocument,
+  updateDocument,
+} from "@/lib/storage/documents";
+import { getElectronAPI, isElectron } from "@/lib/utils/is-electron";
 import type { StoredDocument } from "@/types/document";
 
 function EditorContent() {
   const searchParams = useSearchParams();
+  // 多窗口：每个窗口从自己的 URL 自初始化，三种形态互斥
   const docId = searchParams.get("docId");
+  const isNew = searchParams.get("new");
+  const filePath = searchParams.get("filePath");
   const [document, setDocument] = useState<StoredDocument | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "missing">(
     "loading",
   );
+  // 防止 StrictMode / 重渲染重复初始化（尤其 ?new 会重复建空文档）
+  const initedRef = useRef(false);
 
   useEffect(() => {
     async function loadDocument(id: string) {
@@ -26,7 +36,6 @@ function EditorContent() {
       const localDocument = await getDocument(id);
 
       // 桌面端或本地来源文档：直接走本地，完全不依赖云端
-      // （避免离线/无后端时云端 fetch 卡死或误判 "missing"）
       if (isElectron() || localDocument?.source === "local") {
         if (localDocument) {
           setDocument(localDocument);
@@ -94,12 +103,57 @@ function EditorContent() {
       }
     }
 
+    // ?new=1：建空白文档，回写 URL 为 ?docId= 以支持刷新恢复
+    async function createBlank() {
+      const doc = await createDocument({
+        title: "Untitled",
+        markdown: "# Untitled\n",
+        source: "blank",
+      });
+      window.history.replaceState(null, "", `?docId=${doc.id}`);
+      getElectronAPI()?.registerWindow({ docId: doc.id });
+      setDocument(doc);
+      setStatus("ready");
+    }
+
+    // ?filePath=（桌面）：读盘 + 按路径去重建档，回写 URL 为 ?docId=
+    async function loadFromFilePath(targetPath: string) {
+      const electronAPI = getElectronAPI();
+      if (!electronAPI) {
+        setStatus("missing");
+        return;
+      }
+      const file = await electronAPI.readFile(targetPath);
+      const existing = await findDocumentByFilePath(targetPath);
+      const doc = existing
+        ? await updateDocument(existing.id, { lastOpenedAt: Date.now() })
+        : await createDocument({
+            title: file.name.replace(/\.(md|markdown|txt)$/i, ""),
+            markdown: file.content,
+            source: "local",
+            filePath: file.path,
+          });
+      window.history.replaceState(null, "", `?docId=${doc.id}`);
+      electronAPI.registerWindow({ docId: doc.id, filePath: targetPath });
+      setDocument(doc);
+      setStatus("ready");
+    }
+
+    if (initedRef.current) {
+      return;
+    }
+    initedRef.current = true;
+
     if (docId) {
       void loadDocument(docId);
+    } else if (isNew === "1") {
+      void createBlank();
+    } else if (filePath) {
+      void loadFromFilePath(filePath);
     } else {
       setStatus("missing");
     }
-  }, [docId]);
+  }, [docId, isNew, filePath]);
 
   if (status === "loading") {
     return (

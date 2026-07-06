@@ -3,7 +3,6 @@ import { create } from "zustand";
 import type { StoredDocument } from "@/types/document";
 
 export type SaveState = "dirty" | "saving" | "saved" | "error";
-export type LayoutMode = "split" | "editor" | "preview";
 
 interface EditorStore {
   document: StoredDocument | null;
@@ -19,9 +18,6 @@ interface EditorStore {
   openDrawer: () => void;
   closeDrawer: () => void;
   toggleDrawer: () => void;
-  // 布局模式：并排（默认）/ 仅编辑 / 仅预览
-  layoutMode: LayoutMode;
-  setLayoutMode: (mode: LayoutMode) => void;
 }
 
 export const useEditorStore = create<EditorStore>((set) => ({
@@ -55,9 +51,5 @@ export const useEditorStore = create<EditorStore>((set) => ({
   },
   toggleDrawer: () => {
     set((state) => ({ drawerOpen: !state.drawerOpen }));
-  },
-  layoutMode: "split",
-  setLayoutMode: (layoutMode) => {
-    set({ layoutMode });
   },
 }));

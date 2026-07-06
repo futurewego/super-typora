@@ -20,7 +20,6 @@ export interface ElectronSaveAsResult {
 
 export interface ElectronAPI {
   isElectron: true;
-  onOpenFile: (callback: (filePath: string) => void) => () => void;
   onMenuSave: (callback: () => void) => () => void;
   openFile: () => Promise<{ opened: boolean }>;
   readFile: (filePath: string) => Promise<ElectronFilePayload>;
@@ -29,6 +28,10 @@ export interface ElectronAPI {
     suggestedName: string,
     content: string,
   ) => Promise<ElectronSaveAsResult>;
+  // 多窗口
+  openDocWindow: (docId: string) => Promise<{ ok: boolean }>;
+  newDocWindow: () => Promise<{ ok: boolean }>;
+  registerWindow: (info: { docId?: string; filePath?: string }) => void;
 }
 
 declare global {

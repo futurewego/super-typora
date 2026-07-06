@@ -1,32 +1,18 @@
 @import "tailwindcss";
 
-/* 亮色：macOS 原生中性灰 + 系统强调色 */
+/* 固定亮色：白底黑字，全局单一调色板，不随系统/data-theme 切换。
+   背景浅色、正文近黑（--foreground）、次级灰（--muted）、链接走 --accent。 */
 :root {
+  color-scheme: light;
   --background: #f5f5f7;
   --foreground: #1d1d1f;
   --surface: rgba(255, 255, 255, 0.7);
   --surface-strong: #ffffff;
   --muted: #86868b;
   --line: rgba(0, 0, 0, 0.1);
-  --accent: #007aff;
-  --accent: AccentColor;
-  --accent-soft: rgba(0, 122, 255, 0.12);
-  --accent-soft: color-mix(in srgb, AccentColor 14%, transparent);
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-  --grid: rgba(0, 0, 0, 0.04);
-}
-
-:root[data-theme="light"] {
-  --background: #f5f5f7;
-  --foreground: #1d1d1f;
-  --surface: rgba(255, 255, 255, 0.7);
-  --surface-strong: #ffffff;
-  --muted: #86868b;
-  --line: rgba(0, 0, 0, 0.1);
-  --accent: #007aff;
-  --accent: AccentColor;
-  --accent-soft: rgba(0, 122, 255, 0.12);
-  --accent-soft: color-mix(in srgb, AccentColor 14%, transparent);
+  /* 固定 Apple 蓝：曾用 AccentColor 系统色，但会解析成极浅色导致填充按钮白字不可读，改回固定值 */
+  --accent: #0a84ff;
+  --accent-soft: rgba(10, 132, 255, 0.12);
   --shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
   --grid: rgba(0, 0, 0, 0.04);
 }
@@ -36,39 +22,6 @@
   --color-foreground: var(--foreground);
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
-}
-
-/* 暗色：macOS 原生深灰 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #1c1c1e;
-    --foreground: #f5f5f7;
-    --surface: rgba(40, 40, 42, 0.7);
-    --surface-strong: #262628;
-    --muted: #98989d;
-    --line: rgba(255, 255, 255, 0.12);
-    --accent: #0a84ff;
-    --accent: AccentColor;
-    --accent-soft: rgba(10, 132, 255, 0.18);
-    --accent-soft: color-mix(in srgb, AccentColor 20%, transparent);
-    --shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-    --grid: rgba(255, 255, 255, 0.05);
-  }
-}
-
-:root[data-theme="dark"] {
-  --background: #1c1c1e;
-  --foreground: #f5f5f7;
-  --surface: rgba(40, 40, 42, 0.7);
-  --surface-strong: #262628;
-  --muted: #98989d;
-  --line: rgba(255, 255, 255, 0.12);
-  --accent: #0a84ff;
-  --accent: AccentColor;
-  --accent-soft: rgba(10, 132, 255, 0.18);
-  --accent-soft: color-mix(in srgb, AccentColor 20%, transparent);
-  --shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-  --grid: rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -123,27 +76,166 @@ button {
   -webkit-app-region: no-drag;
 }
 /* hiddenInset 标题栏：交通灯按钮在左上角，给拖拽条留出空间 */
+/* sticky 常驻：滚动/布局变化时顶部标题永不消失 */
 .titlebar {
   height: 38px;
   -webkit-app-region: drag;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--surface);
 }
 .titlebar :where(button, a, input, select) {
   -webkit-app-region: no-drag;
 }
 
-/* ---- Electron 桌面端：透出窗口 vibrancy 毛玻璃 ---- */
-/* body 实色背景 + 网格 + 暖色渐变会挡住 vibrancy，桌面端全部透明 */
+/* ---- Electron 桌面端：固定亮色实底 ---- */
+/* 改用浅色实底（不再透出窗口 vibrancy，避免暗色毛玻璃配白面板违和） */
 html.electron body {
-  background: transparent;
+  background: var(--background);
   background-image: none;
 }
-/* 噪点层为半透明，会糊掉毛玻璃，桌面端禁用 */
+/* 噪点层会糊画面，桌面端禁用 */
 html.electron .grain::after {
   display: none;
 }
-/* 编辑区外壳：双栏模式下 grid 间隙透出此层，桌面端透明以显 vibrancy；
-   编辑器/预览面板自身仍为 --surface-strong 实色，保证正文可读 */
+/* 编辑区外壳：双栏 grid 间隙透出此层，用浅色 surface */
 html.electron .editor-canvas {
+  background: var(--surface);
+}
+
+/* ---- Milkdown / Crepe 主题：映射到 app token，亮暗随 [data-theme] 自动切换 ---- */
+.milkdown {
+  --crepe-color-background: var(--surface-strong);
+  --crepe-color-on-background: var(--foreground);
+  --crepe-color-surface: var(--surface-strong);
+  --crepe-color-surface-low: var(--surface);
+  --crepe-color-on-surface: var(--foreground);
+  --crepe-color-on-surface-variant: var(--muted);
+  --crepe-color-outline: var(--line);
+  --crepe-color-primary: var(--accent);
+  --crepe-color-secondary: var(--accent-soft);
+  --crepe-color-on-secondary: var(--foreground);
+  --crepe-color-inverse: var(--foreground);
+  --crepe-color-on-inverse: var(--surface-strong);
+  --crepe-color-inline-code: var(--accent);
+  --crepe-color-error: #ff453a;
+  --crepe-color-hover: var(--accent-soft);
+  --crepe-color-selected: var(--accent-soft);
+  --crepe-color-inline-area: var(--surface);
+
+  --crepe-font-title: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --crepe-font-default: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --crepe-font-code: ui-monospace, "SF Mono", Menlo, monospace;
+}
+.milkdown-host {
+  overflow: auto;
+}
+/* Crepe 编辑器铺满容器，透明背景以与单栏画布一致 */
+.milkdown-host .milkdown {
+  height: 100%;
   background: transparent;
+}
+.milkdown-host .milkdown .ProseMirror {
+  padding: 8px 4px 64px;
+}
+
+/* ---- WYSIWYG 代码块：mermaid 图在上、源码在下（Crepe 默认相反，这里翻转） ---- */
+/* 仅 mermaid 块有 .preview-panel（非图代码块 renderPreview 返回 null，无空壳） */
+.milkdown-host .milkdown-code-block {
+  display: flex;
+  flex-direction: column;
+}
+.milkdown-host .milkdown-code-block .tools {
+  order: 0;
+}
+.milkdown-host .milkdown-code-block .preview-panel {
+  order: 1;
+}
+.milkdown-host .milkdown-code-block .codemirror-host {
+  order: 2;
+}
+.mermaid-preview {
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+  padding: 12px 4px;
+}
+.mermaid-preview svg {
+  max-width: 100%;
+  height: auto;
+}
+.mermaid-preview--loading {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.mermaid-preview-error {
+  width: 100%;
+  margin: 0;
+  overflow: auto;
+  border-radius: 0.75rem;
+  border: 1px solid #ff453a55;
+  background: #ff453a12;
+  padding: 12px;
+  font-size: 0.75rem;
+  color: #ff453a;
+}
+
+/* ---- 只读预览：代码块语法高亮（rehype-highlight → hljs class）----
+   项目此前未引入任何 highlight.js 主题，代码块无颜色。
+   app 固定亮色，故内联一套 GitHub Light 调色板，跟随 --foreground 作正文色。 */
+.prose code.hljs {
+  color: var(--foreground);
+  background: transparent;
+}
+.prose .hljs-comment,
+.prose .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+.prose .hljs-keyword,
+.prose .hljs-selector-tag,
+.prose .hljs-doctag,
+.prose .hljs-name,
+.prose .hljs-tag {
+  color: #d73a49;
+}
+.prose .hljs-string,
+.prose .hljs-meta .hljs-string,
+.prose .hljs-regexp,
+.prose .hljs-addition {
+  color: #032f62;
+}
+.prose .hljs-number,
+.prose .hljs-literal,
+.prose .hljs-variable,
+.prose .hljs-template-variable,
+.prose .hljs-attr,
+.prose .hljs-attribute,
+.prose .hljs-symbol,
+.prose .hljs-bullet,
+.prose .hljs-built_in {
+  color: #005cc5;
+}
+.prose .hljs-title,
+.prose .hljs-title.function_,
+.prose .hljs-section,
+.prose .hljs-type,
+.prose .hljs-class .hljs-title {
+  color: #6f42c1;
+}
+.prose .hljs-meta,
+.prose .hljs-selector-id,
+.prose .hljs-selector-class {
+  color: #6f42c1;
+}
+.prose .hljs-deletion {
+  color: #b31d28;
+}
+.prose .hljs-emphasis {
+  font-style: italic;
+}
+.prose .hljs-strong {
+  font-weight: 600;
 }
 
